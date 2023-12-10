@@ -5,7 +5,7 @@ from users.models import User
 
 class Tag(models.Model):
     """Модель тега."""
-    name = models.TextField(
+    name = models.CharField(
         max_length=200,
         verbose_name='Название',
         help_text='Укажите название',
@@ -28,12 +28,12 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     """Модель ингредиента."""
-    name = models.TextField(
+    name = models.CharField(
         max_length=200,
         verbose_name='Название',
         help_text='Укажите название',
     )
-    measurement_unit = models.TextField(
+    measurement_unit = models.CharField(
         max_length=200,
         verbose_name='Единица измерения',
         help_text='Укажите единицу измерения ингредиента',
@@ -62,7 +62,7 @@ class Recip(models.Model):
         related_name='recip',
         verbose_name='Тег рецепта',
     )
-    name = models.TextField(
+    name = models.CharField(
         max_length=200,
         verbose_name='Название',
         help_text='Укажите название'
@@ -85,6 +85,13 @@ class Recip(models.Model):
         blank=True,
         verbose_name="Описание",
         help_text='Добавьте описание'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='recip',
+        verbose_name='Автор',
+        help_text='Укажите автора'
     )
 
     class Meta:
