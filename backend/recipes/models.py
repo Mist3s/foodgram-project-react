@@ -3,27 +3,6 @@ from django.core.validators import MinValueValidator
 from users.models import User
 
 
-class Favorite(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='favorites'
-    )
-    recipe = models.ForeignKey(
-        'Recipe',
-        on_delete=models.CASCADE,
-        related_name='favorites'
-    )
-
-    class Meta:
-        verbose_name = 'Избранное'
-        verbose_name_plural = 'Избранные'
-        constraints = [models.UniqueConstraint(
-            fields=['user', 'recipe'],
-            name='unique_favorites'
-        )]
-
-
 class Tag(models.Model):
     """Модель тега."""
     name = models.TextField(
@@ -80,7 +59,7 @@ class Recip(models.Model):
     tags = models.ManyToManyField(
         Tag,
         blank=True,
-        related_name='recipes',
+        related_name='recip',
         verbose_name='Тег рецепта',
     )
     name = models.TextField(
@@ -114,6 +93,27 @@ class Recip(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favorite'
+    )
+    recipe = models.ForeignKey(
+        Recip,
+        on_delete=models.CASCADE,
+        related_name='favorite'
+    )
+
+    class Meta:
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранные'
+        constraints = [models.UniqueConstraint(
+            fields=['user', 'recipe'],
+            name='unique_favorites'
+        )]
 
 
 class RecipIngredient(models.Model):
