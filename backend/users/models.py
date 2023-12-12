@@ -30,6 +30,8 @@ class User(AbstractUser):
         verbose_name='Фамилия пользователя',
         help_text='Укажите фамилия пользователя'
     )
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'username']
+    USERNAME_FIELD = 'email'
 
     class Meta:
         ordering = ('id',)
