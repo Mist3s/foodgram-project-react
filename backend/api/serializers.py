@@ -4,7 +4,7 @@ from rest_framework import serializers
 from users.models import User
 
 
-class GetUserSerializer(UserSerializer):
+class CustomUserSerializer(UserSerializer):
     is_subscribed = serializers.BooleanField(
         read_only=True,
         default=False
