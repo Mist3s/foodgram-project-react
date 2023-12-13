@@ -124,3 +124,11 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ),
 }
+
+
+DJOSER = {
+    'SERIALIZERS': {
+        'user': 'api.serializers.GetUserSerializer',
+        'current_user': 'api.serializers.GetUserSerializer',
+    },
+}
