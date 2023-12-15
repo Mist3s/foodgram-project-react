@@ -27,7 +27,7 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    """Модель ингредиента."""
+    """Модель ингредиентов."""
     name = models.CharField(
         max_length=200,
         verbose_name='Название',
