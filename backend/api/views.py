@@ -5,7 +5,7 @@ from djoser.views import UserViewSet
 
 from users.models import Follow, User
 from recipes.models import Tag, Ingredient, Recip
-from .serializers import TagSerializer, IngredientSerializer
+from .serializers import TagSerializer, IngredientSerializer, RecipSerializer
 
 
 class TagViewSet(
@@ -29,3 +29,9 @@ class IngredientViewSet(
     # Нужно допилить поисковой фильтр.
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+
+
+class RecipViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели Recip."""
+    queryset = Recip.objects.all()
+    serializer_class = RecipSerializer

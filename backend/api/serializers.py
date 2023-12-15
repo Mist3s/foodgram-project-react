@@ -40,3 +40,24 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit')
+
+
+class RecipSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Recip."""
+    tags = TagSerializer(read_only=True, many=True)
+    author = CustomUserSerializer(
+        read_only=True,
+    )
+    ingredients = IngredientSerializer(read_only=True, many=True)
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Recip
+        fields = '__all__'
+
+    def get_is_favorited(self, obj: Recip) -> bool:
+        return False
+
+    def get_is_in_shopping_cart(self, obj: Recip) -> bool:
+        return False
