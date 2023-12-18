@@ -35,3 +35,8 @@ class RecipViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Recip."""
     queryset = Recip.objects.all()
     serializer_class = RecipSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(
+            author=self.request.user
+        )

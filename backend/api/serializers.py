@@ -1,8 +1,24 @@
+import base64
+
 from djoser.serializers import UserSerializer
+from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from users.models import User
-from recipes.models import Tag, Ingredient, Recip
+from recipes.models import (
+    Tag, Ingredient, Recip,
+    Favorite, RecipIngredient
+)
+
+
+class Base64ImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            _format, img_str = data.split(';base64,')
+            ext = _format.split('/')[-1]
+            data = ContentFile(base64.b64decode(img_str), name='temp.' + ext)
+
+        return super().to_internal_value(data)
 
 
 class CustomUserSerializer(UserSerializer):
@@ -44,20 +60,37 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class RecipSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Recip."""
-    tags = TagSerializer(read_only=True, many=True)
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(),
+        many=True
+    )
     author = CustomUserSerializer(
         read_only=True,
     )
     ingredients = IngredientSerializer(read_only=True, many=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
+    image = Base64ImageField(
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = Recip
         fields = '__all__'
 
     def get_is_favorited(self, obj: Recip) -> bool:
-        return False
+        """Проверка - находится ли рецепт в избранном."""
+        user = self.context.get("view").request.user
+        if user.is_anonymous:
+            return False
+        return user.favorite.filter(recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj: Recip) -> bool:
-        return False
+        """Проверка - находится ли рецепт в списке покупок."""
+        user = self.context.get("view").request.user
+        if user.is_anonymous:
+            return False
+        # Нужно дописать модель корзины.
+        # return user.carts.filter(recipe=obj).exists()
+        return True
