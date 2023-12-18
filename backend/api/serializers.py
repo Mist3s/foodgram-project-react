@@ -58,16 +58,48 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
-class RecipSerializer(serializers.ModelSerializer):
+class RecipIngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели ингредиентов."""
+    id = serializers.IntegerField(
+        source='ingredient.id'
+    )
+    measurement_unit = serializers.StringRelatedField(
+        source='ingredient.measurement_unit'
+    )
+    name = serializers.StringRelatedField(
+        source='ingredient.name'
+    )
+
+    class Meta:
+        model = RecipIngredient
+        fields = (
+            'id',
+            'name',
+            'measurement_unit',
+            'amount',
+        )
+
+
+class IngredientAmountSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(write_only=True)
+    amount = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = RecipIngredient
+        fields = ('id', 'amount')
+
+
+class RecipGetSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Recip."""
-    tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(),
-        many=True
+    tags = TagSerializer(many=True)
+    ingredients = RecipIngredientSerializer(
+        read_only=True,
+        many=True,
+        source='recip_ingredient'
     )
     author = CustomUserSerializer(
         read_only=True,
     )
-    ingredients = IngredientSerializer(read_only=True, many=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField(
@@ -77,7 +109,18 @@ class RecipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recip
-        fields = '__all__'
+        fields = (
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
+            'name',
+            'image',
+            'text',
+            'cooking_time'
+        )
 
     def get_is_favorited(self, obj: Recip) -> bool:
         """Проверка - находится ли рецепт в избранном."""
@@ -94,3 +137,53 @@ class RecipSerializer(serializers.ModelSerializer):
         # Нужно дописать модель корзины.
         # return user.carts.filter(recipe=obj).exists()
         return True
+
+
+class RecipSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Recip."""
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(),
+        many=True
+    )
+    ingredients = IngredientAmountSerializer(many=True)
+    author = CustomUserSerializer(
+        read_only=True,
+    )
+    image = Base64ImageField(
+        required=False,
+        allow_null=True
+    )
+
+    class Meta:
+        model = Recip
+        fields = (
+            'tags',
+            'author',
+            'ingredients',
+            'name',
+            'image',
+            'text',
+            'cooking_time'
+        )
+
+    def to_representation(self, instance):
+        return RecipGetSerializer(instance, context=self.context).data
+
+    def add_ingredients_and_tags(self, tags, ingredients, recipe):
+        recipe.tags.set(tags)
+        ingredients_list = []
+        for ingredient in ingredients:
+            new_ingredient = RecipIngredient(
+                recip=recipe,
+                ingredient_id=ingredient['id'],
+                amount=ingredient['amount'],
+            )
+            ingredients_list.append(new_ingredient)
+        RecipIngredient.objects.bulk_create(ingredients_list)
+        return recipe
+
+    def create(self, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        recipe = Recip.objects.create(**validated_data)
+        return self.add_ingredients_and_tags(tags, ingredients, recipe)
