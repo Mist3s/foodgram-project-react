@@ -6,8 +6,8 @@ from rest_framework import serializers
 
 from users.models import User
 from recipes.models import (
-    Tag, Ingredient, Recip,
-    Favorite, RecipIngredient
+    Tag, Ingredient, Recipe,
+    Favorite, RecipeIngredient
 )
 
 
@@ -58,7 +58,7 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
-class RecipIngredientSerializer(serializers.ModelSerializer):
+class RecipeIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для модели ингредиентов."""
     id = serializers.IntegerField(
         source='ingredient.id'
@@ -71,7 +71,7 @@ class RecipIngredientSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = RecipIngredient
+        model = RecipeIngredient
         fields = (
             'id',
             'name',
@@ -85,17 +85,17 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
     amount = serializers.IntegerField(write_only=True)
 
     class Meta:
-        model = RecipIngredient
+        model = RecipeIngredient
         fields = ('id', 'amount')
 
 
-class RecipGetSerializer(serializers.ModelSerializer):
+class RecipeGetSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Recip."""
     tags = TagSerializer(many=True)
-    ingredients = RecipIngredientSerializer(
+    ingredients = RecipeIngredientSerializer(
         read_only=True,
         many=True,
-        source='recip_ingredient'
+        source='recipe_ingredient'
     )
     author = CustomUserSerializer(
         read_only=True,
@@ -108,7 +108,7 @@ class RecipGetSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = Recip
+        model = Recipe
         fields = (
             'id',
             'tags',
@@ -122,14 +122,14 @@ class RecipGetSerializer(serializers.ModelSerializer):
             'cooking_time'
         )
 
-    def get_is_favorited(self, obj: Recip) -> bool:
+    def get_is_favorited(self, obj: Recipe) -> bool:
         """Проверка - находится ли рецепт в избранном."""
         user = self.context.get("view").request.user
         if user.is_anonymous:
             return False
         return user.favorite.filter(recipe=obj).exists()
 
-    def get_is_in_shopping_cart(self, obj: Recip) -> bool:
+    def get_is_in_shopping_cart(self, obj: Recipe) -> bool:
         """Проверка - находится ли рецепт в списке покупок."""
         user = self.context.get("view").request.user
         if user.is_anonymous:
@@ -139,7 +139,7 @@ class RecipGetSerializer(serializers.ModelSerializer):
         return True
 
 
-class RecipSerializer(serializers.ModelSerializer):
+class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Recip."""
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
@@ -155,7 +155,7 @@ class RecipSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = Recip
+        model = Recipe
         fields = (
             'tags',
             'author',
@@ -167,35 +167,22 @@ class RecipSerializer(serializers.ModelSerializer):
         )
 
     def to_representation(self, instance):
-        return RecipGetSerializer(instance, context=self.context).data
-
-    def add_ingredients_and_tags(self, tags, ingredients, recipe):
-        recipe.tags.set(tags)
-        ingredients_list = []
-        for ingredient in ingredients:
-            new_ingredient = RecipIngredient(
-                recip=recipe,
-                ingredient_id=ingredient['id'],
-                amount=ingredient['amount'],
-            )
-            ingredients_list.append(new_ingredient)
-        RecipIngredient.objects.bulk_create(ingredients_list)
-        return recipe
+        return RecipeGetSerializer(instance, context=self.context).data
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        recipe = Recip.objects.create(**validated_data)
+        recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
         ingredients_list = []
         for ingredient in ingredients:
-            new_ingredient = RecipIngredient(
-                recip=recipe,
+            new_ingredient = RecipeIngredient(
+                recipe=recipe,
                 ingredient_id=ingredient['id'],
                 amount=ingredient['amount'],
             )
             ingredients_list.append(new_ingredient)
-        RecipIngredient.objects.bulk_create(ingredients_list)
+        RecipeIngredient.objects.bulk_create(ingredients_list)
         return recipe
 
     def update(self, instance, validated_data):
@@ -206,11 +193,11 @@ class RecipSerializer(serializers.ModelSerializer):
         instance.tags.set(tags)
         ingredients_list = []
         for ingredient in ingredients:
-            new_ingredient = RecipIngredient(
-                recip=instance,
+            new_ingredient = RecipeIngredient(
+                recipe=instance,
                 ingredient_id=ingredient['id'],
                 amount=ingredient['amount'],
             )
             ingredients_list.append(new_ingredient)
-        RecipIngredient.objects.bulk_create(ingredients_list)
+        RecipeIngredient.objects.bulk_create(ingredients_list)
         return instance

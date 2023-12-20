@@ -4,8 +4,8 @@ from rest_framework.generics import get_object_or_404
 from djoser.views import UserViewSet
 
 from users.models import Follow, User
-from recipes.models import Tag, Ingredient, Recip
-from .serializers import TagSerializer, IngredientSerializer, RecipSerializer
+from recipes.models import Tag, Ingredient, Recipe
+from .serializers import TagSerializer, IngredientSerializer, RecipeSerializer
 
 
 class TagViewSet(
@@ -31,10 +31,10 @@ class IngredientViewSet(
     search_fields = ('name',)
 
 
-class RecipViewSet(viewsets.ModelViewSet):
+class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Recip."""
-    queryset = Recip.objects.all()
-    serializer_class = RecipSerializer
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
 
     def perform_create(self, serializer):
         serializer.save(
