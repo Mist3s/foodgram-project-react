@@ -186,4 +186,31 @@ class RecipSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe = Recip.objects.create(**validated_data)
-        return self.add_ingredients_and_tags(tags, ingredients, recipe)
+        recipe.tags.set(tags)
+        ingredients_list = []
+        for ingredient in ingredients:
+            new_ingredient = RecipIngredient(
+                recip=recipe,
+                ingredient_id=ingredient['id'],
+                amount=ingredient['amount'],
+            )
+            ingredients_list.append(new_ingredient)
+        RecipIngredient.objects.bulk_create(ingredients_list)
+        return recipe
+
+    def update(self, instance, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        instance.ingredients.clear()
+        instance = super().update(instance, validated_data)
+        instance.tags.set(tags)
+        ingredients_list = []
+        for ingredient in ingredients:
+            new_ingredient = RecipIngredient(
+                recip=instance,
+                ingredient_id=ingredient['id'],
+                amount=ingredient['amount'],
+            )
+            ingredients_list.append(new_ingredient)
+        RecipIngredient.objects.bulk_create(ingredients_list)
+        return instance

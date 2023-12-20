@@ -139,10 +139,10 @@ class RecipIngredient(models.Model):
         verbose_name='Ингредиент',
         help_text='Укажите ингредиент'
     )
-    amount = models.FloatField(
+    amount = models.IntegerField(
         validators=[
             MinValueValidator(
-                limit_value=0.001,
+                limit_value=1,
             )
         ]
     )
