@@ -4,8 +4,11 @@ from rest_framework.generics import get_object_or_404
 from djoser.views import UserViewSet
 
 from users.models import Follow, User
-from recipes.models import Tag, Ingredient, Recipe
-from .serializers import TagSerializer, IngredientSerializer, RecipeSerializer
+from recipes.models import Tag, Ingredient, Recipe, Cart
+from .serializers import (
+    TagSerializer, IngredientSerializer,
+    RecipeSerializer, CartSerializer
+)
 
 
 class TagViewSet(
@@ -39,4 +42,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(
             author=self.request.user
+        )
+
+
+class CartViewSet(
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    """Вьюсет для модели CART."""
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
+
+    def perform_create(self, serializer):
+        recipe_id = self.kwargs.get('recipe_id')
+        serializer.save(
+            user=self.request.user,
+            recipe=recipe_id
         )

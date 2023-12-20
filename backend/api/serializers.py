@@ -7,7 +7,8 @@ from rest_framework import serializers
 from users.models import User
 from recipes.models import (
     Tag, Ingredient, Recipe,
-    Favorite, RecipeIngredient
+    Favorite, RecipeIngredient,
+    Cart
 )
 
 
@@ -201,3 +202,62 @@ class RecipeSerializer(serializers.ModelSerializer):
             ingredients_list.append(new_ingredient)
         RecipeIngredient.objects.bulk_create(ingredients_list)
         return instance
+
+
+class CartSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        return CartGetSerializer(instance, context=self.context).data
+
+    class Meta:
+        model = Cart
+        exclude = ('user', 'recipe')
+
+    def create(self, validated_data):
+        recipe = Recipe.objects.get(
+            id=self.context.get('view').kwargs.get('recipe_id')
+        )
+        return Cart.objects.create(
+            user=self.context.get('request').user,
+            recipe=recipe
+        )
+
+    def validate(self, data):
+        """Валидация повторного добавления в корзину."""
+        if self.context.get('request').method != 'POST':
+            return data
+        recipe = Recipe.objects.get(
+            id=self.context.get('view').kwargs.get('recipe_id')
+        )
+        if Cart.objects.filter(
+                user=self.context.get('request').user,
+                recipe=recipe
+        ).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в корзину.'
+            )
+        return data
+
+
+class CartGetSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(
+        source='recipe.id'
+    )
+    name = serializers.StringRelatedField(
+        source='recipe.name'
+    )
+    image = serializers.ImageField(
+        source='recipe.image'
+    )
+    cooking_time = serializers.IntegerField(
+        source='recipe.cooking_time'
+    )
+
+    class Meta:
+        model = Cart
+        fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time'
+        )
+        read_only_fields = ('__all__',)

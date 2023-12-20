@@ -163,10 +163,11 @@ class Cart(models.Model):
         on_delete=models.CASCADE,
         related_name='cart_recipe',
     )
-    amount = models.IntegerField(
-        validators=[
-            MinValueValidator(
-                limit_value=1,
-            )
-        ]
-    )
+
+    class Meta:
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзина'
+        constraints = [models.UniqueConstraint(
+            fields=['user', 'recipe'],
+            name='unique_cart'
+        )]
