@@ -1,20 +1,23 @@
 from django.contrib import admin
 
-from .models import Recip, Tag, Ingredient, Favorite, RecipIngredient
+from .models import Recipe, Tag, Ingredient, Favorite, RecipeIngredient
 
 
 @admin.display(description='Описание')
 def trim_field_text(obj):
     """Отображаемый текст не превышает 150 символов."""
-    return f"{obj.text[:150]}..."
+    mx_len = 150
+    if len(obj.text) > mx_len:
+        return f"{obj.text[:mx_len]}..."
+    return obj.text
 
 
 class IngredientInline(admin.TabularInline):
-    model = RecipIngredient
+    model = RecipeIngredient
     extra = 1
 
 
-@admin.register(Recip)
+@admin.register(Recipe)
 class RecipAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'cooking_time', trim_field_text, 'author')
     list_editable = ('name', 'cooking_time')
