@@ -47,6 +47,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 class CartViewSet(
     mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
     """Вьюсет для модели CART."""
@@ -59,3 +60,7 @@ class CartViewSet(
             user=self.request.user,
             recipe=recipe_id
         )
+
+    # def perform_destroy(self, instance):
+    #     print(instance)
+    #     instance.delete()
