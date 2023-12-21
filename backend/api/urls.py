@@ -10,12 +10,11 @@ from .views import (
 v1_router = routers.DefaultRouter()
 v1_router.register(r'tags', TagViewSet)
 v1_router.register(r'ingredients', IngredientViewSet)
-v1_router.register(r'recipes', RecipeViewSet)
-# http://localhost:63342/api/recipes/{id}/shopping_cart/
 v1_router.register(
     r'recipes/(?P<recipe_id>\d+)/shopping_cart',
     CartViewSet
 )
+v1_router.register(r'recipes', RecipeViewSet)
 
 urlpatterns = [
     path('', include(v1_router.urls)),

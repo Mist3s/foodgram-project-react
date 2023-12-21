@@ -1,6 +1,8 @@
-from rest_framework import viewsets, filters, mixins
+from rest_framework import status, viewsets, filters, mixins
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import get_object_or_404
+from rest_framework.response import Response
+from rest_framework.decorators import action
 from djoser.views import UserViewSet
 
 from users.models import Follow, User
@@ -48,6 +50,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class CartViewSet(
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
     """Вьюсет для модели CART."""
@@ -61,6 +64,12 @@ class CartViewSet(
             recipe=recipe_id
         )
 
-    # def perform_destroy(self, instance):
-    #     print(instance)
-    #     instance.delete()
+    @action(methods=['delete'], detail=False)
+    def delete(self, request, **kwargs):
+        instance = get_object_or_404(
+            Cart,
+            user=request.user,
+            recipe=kwargs.get('recipe_id')
+        )
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
