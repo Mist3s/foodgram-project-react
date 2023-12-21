@@ -50,7 +50,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class CartViewSet(
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
     """Вьюсет для модели CART."""
@@ -73,3 +72,19 @@ class CartViewSet(
         )
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CartDownloadViewSet(
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    @action(detail=False,
+            methods=['get'])
+    def download_shopping_cart(self, request):
+        instance = get_object_or_404(
+            Cart,
+            user=request.user,
+            recipe=self.kwargs.get('recipe_id')
+        )
+        print(instance)
+        return Response(status=status.HTTP_200_OK)
