@@ -46,6 +46,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
             author=self.request.user
         )
 
+    # @action(
+    #     detail=False,
+    #     methods=['get'],
+    # )
+    # def download_shopping_cart(self, request):
+    #     instance = Cart.objects.get(
+    #         user=request.user
+    #     )
+    #     print(instance)
+    #     data = {
+    #         'test': 'test'
+    #     }
+    #     return Response(data, status=status.HTTP_200_OK)
+
 
 class CartViewSet(
     mixins.CreateModelMixin,
@@ -75,16 +89,19 @@ class CartViewSet(
 
 
 class CartDownloadViewSet(
-    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
-    @action(detail=False,
-            methods=['get'])
+    @action(
+        detail=False,
+        methods=['get'],
+    )
     def download_shopping_cart(self, request):
-        instance = get_object_or_404(
-            Cart,
-            user=request.user,
-            recipe=self.kwargs.get('recipe_id')
+        instance = Cart.objects.get(
+            user=request.user
         )
         print(instance)
-        return Response(status=status.HTTP_200_OK)
+        data = {
+            'test': 'test'
+        }
+        return Response(data, status=status.HTTP_200_OK)
