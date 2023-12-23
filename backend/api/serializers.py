@@ -7,8 +7,7 @@ from rest_framework import serializers
 from users.models import User
 from recipes.models import (
     Tag, Ingredient, Recipe,
-    Favorite, RecipeIngredient,
-    Cart
+    Favorite, RecipeIngredient, Cart
 )
 
 
@@ -261,3 +260,38 @@ class CartGetSerializer(serializers.ModelSerializer):
             'cooking_time'
         )
         read_only_fields = ('__all__',)
+
+
+class RecipesShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time'
+        )
+
+
+class SubscriptionsSerializer(CustomUserSerializer):
+    recipes = RecipesShortSerializer(
+        many=True,
+        source='recip'
+    )
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count'
+        )
+
+    def get_recipes_count(self, obj: User) -> int:
+        return obj.recip.count()

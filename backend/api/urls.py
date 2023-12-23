@@ -4,7 +4,7 @@ from rest_framework import routers
 from .views import (
     TagViewSet, IngredientViewSet,
     RecipeViewSet, CartViewSet,
-    CartDownloadViewSet
+    CartDownloadViewSet, CustomUserViewSet
 )
 
 
@@ -34,9 +34,14 @@ v1_router.register(
     RecipeViewSet,
     basename='recipe'
 )
+v1_router.register(
+    'users',
+    CustomUserViewSet,
+    basename='users'
+)
 
 urlpatterns = [
     path('', include(v1_router.urls)),
-    re_path('', include('djoser.urls')),
+    # re_path('', include('djoser.urls')),
     re_path(r'^auth/', include('djoser.urls.authtoken')),
 ]

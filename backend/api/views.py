@@ -9,8 +9,31 @@ from users.models import Follow, User
 from recipes.models import Tag, Ingredient, Recipe, Cart
 from .serializers import (
     TagSerializer, IngredientSerializer,
-    RecipeSerializer, CartSerializer
+    RecipeSerializer, CartSerializer, SubscriptionsSerializer
 )
+
+
+class CustomUserViewSet(UserViewSet):
+    @action(
+        methods=['get'],
+        detail=False
+    )
+    def subscriptions(self, request):
+        user = request.user
+        following = User.objects.filter(
+            following__user=user
+        )
+        print(following)
+        serializer = SubscriptionsSerializer(
+            data=following,
+            many=True,
+            context={
+                'request': request
+            }
+        )
+        serializer.is_valid()
+        print(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TagViewSet(
