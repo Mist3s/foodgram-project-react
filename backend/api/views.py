@@ -23,17 +23,16 @@ class CustomUserViewSet(UserViewSet):
         following = User.objects.filter(
             following__user=user
         )
-        print(following)
+        paginate = self.paginate_queryset(following)
         serializer = SubscriptionsSerializer(
-            data=following,
+            data=paginate,
             many=True,
             context={
                 'request': request
             }
         )
         serializer.is_valid()
-        print(serializer.data)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.get_paginated_response(serializer.data)
 
 
 class TagViewSet(
