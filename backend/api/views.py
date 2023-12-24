@@ -9,7 +9,8 @@ from users.models import Follow, User
 from recipes.models import Tag, Ingredient, Recipe, Cart
 from .serializers import (
     TagSerializer, IngredientSerializer,
-    RecipeSerializer, CartSerializer, SubscriptionsSerializer
+    RecipeSerializer, CartSerializer,
+    SubscriptionsSerializer, FollowSerializer
 )
 
 
@@ -33,6 +34,34 @@ class CustomUserViewSet(UserViewSet):
         )
         serializer.is_valid()
         return self.get_paginated_response(serializer.data)
+
+    @action(
+        methods=['post', 'delete'],
+        detail=True
+    )
+    def subscribe(self, request, **kwargs):
+        following = get_object_or_404(
+            User,
+            id=kwargs.get('id')
+        )
+        if (request.method == 'DELETE'
+                and User.objects.filter().exists()):
+            print(1111)
+        if (request.method == 'POST'
+                and not Follow.objects.filter(
+                    user=request.user,
+                    following=following
+                ).exists):
+            # Follow.objects.create(
+            #     user=request.user,
+            #     following=following
+            # )
+            print(2222)
+        print(Follow.objects.filter(
+                    user=request.user,
+                    following=following
+                ).exists)
+        return Response(status=200)
 
 
 class TagViewSet(
