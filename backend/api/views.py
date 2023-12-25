@@ -10,7 +10,7 @@ from recipes.models import Tag, Ingredient, Recipe, Cart
 from .serializers import (
     TagSerializer, IngredientSerializer,
     RecipeSerializer, CartSerializer,
-    SubscriptionsSerializer, FollowSerializer
+    SubscriptionsSerializer
 )
 
 

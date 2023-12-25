@@ -295,21 +295,3 @@ class SubscriptionsSerializer(CustomUserSerializer):
 
     def get_recipes_count(self, obj: User) -> int:
         return obj.recip.count()
-
-
-class FollowSerializer(serializers.Serializer):
-    class Meta:
-        model = Follow
-
-    def to_representation(self, instance):
-        return SubscriptionsSerializer(instance, context=self.context).data
-
-    def create(self, validated_data):
-        user = User.objects.get(
-            id=self.data.kwargs.get('id')
-        )
-
-        return Follow.objects.create(
-            user=self.context.get('request').user,
-            following=user
-        )
