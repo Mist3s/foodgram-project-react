@@ -44,24 +44,46 @@ class CustomUserViewSet(UserViewSet):
             User,
             id=kwargs.get('id')
         )
-        if (request.method == 'DELETE'
-                and User.objects.filter().exists()):
-            print(1111)
-        if (request.method == 'POST'
-                and not Follow.objects.filter(
-                    user=request.user,
-                    following=following
-                ).exists):
-            # Follow.objects.create(
-            #     user=request.user,
-            #     following=following
-            # )
-            print(2222)
-        print(Follow.objects.filter(
-                    user=request.user,
-                    following=following
-                ).exists)
-        return Response(status=200)
+        if request.method == 'DELETE':
+            following = Follow.objects.filter(
+                following=following,
+                user=request.user
+            )
+            if not following:
+                return Response(
+                    data='Вы не подписаны на этого пользователя.',
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            following.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        elif request.user == following:
+            return Response(
+                'Вы пытаетесь подписаться на себя.',
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        elif Follow.objects.filter(
+                user=request.user,
+                following=following
+        ):
+            return Response(
+                data='Вы уже подписаны.',
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        elif request.method == 'POST':
+            Follow.objects.create(
+                user=request.user,
+                following=following
+            )
+            serializer = SubscriptionsSerializer(
+                following,
+                context={
+                    'request': request
+                }
+            )
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
 
 
 class TagViewSet(
