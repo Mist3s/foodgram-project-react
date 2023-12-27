@@ -8,6 +8,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from users.models import Follow, User
 from recipes.models import Tag, Ingredient, Recipe, Cart, Favorite
+
+from .filters import IngredientSearchFilter, RecipeSearchFilter
 from .serializers import (
     TagSerializer, IngredientSerializer,
     RecipeSerializer, CartSerializer,
@@ -87,11 +89,7 @@ class CustomUserViewSet(UserViewSet):
             )
 
 
-class TagViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    viewsets.GenericViewSet
-):
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для модели Таг."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -99,27 +97,23 @@ class TagViewSet(
     pagination_class = None
 
 
-class IngredientViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    viewsets.GenericViewSet
-):
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для модели ингредиентов."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     # Тут не нужна пагинация.
     pagination_class = None
     # Нужно допилить поисковой фильтр.
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['name']
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientSearchFilter
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Recip."""
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    # filter_backends = [DjangoFilterBackend]
-    # filterset_fields = ['is_favorited', 'is_in_shopping_cart']
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeSearchFilter
 
     def perform_create(self, serializer):
         serializer.save(
