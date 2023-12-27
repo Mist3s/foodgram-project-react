@@ -1,6 +1,9 @@
 from django.contrib import admin
 
-from .models import Recipe, Tag, Ingredient, Favorite, RecipeIngredient
+from .models import (
+    Recipe, Tag, Ingredient, Favorite,
+    RecipeIngredient, Cart
+)
 
 
 @admin.display(description='Описание')
@@ -41,4 +44,15 @@ class IngredientAdmin(admin.ModelAdmin):
     list_editable = ('name', 'measurement_unit')
     list_filter = ('name', 'measurement_unit')
     search_fields = ('name', 'measurement_unit')
+
+
+@admin.register(Cart)
+class CartAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'recipe')
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'recipe')
+
 
