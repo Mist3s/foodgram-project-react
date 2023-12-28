@@ -134,9 +134,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
         user = self.context.get("view").request.user
         if user.is_anonymous:
             return False
-        # Нужно дописать модель корзины.
-        # return user.carts.filter(recipe=obj).exists()
-        return True
+        return user.cart_user.filter(recipe=obj).exists()
 
 
 class RecipeSerializer(serializers.ModelSerializer):
