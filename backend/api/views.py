@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from djoser.views import UserViewSet
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from users.models import Follow, User
 from recipes.models import Tag, Ingredient, Recipe, Cart, Favorite
@@ -93,6 +94,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для модели Таг."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    permission_classes = (AllowAny,)
     # Тут не нужна пагинация.
     pagination_class = None
 
@@ -101,6 +103,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для модели ингредиентов."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    permission_classes = (AllowAny,)
     # Тут не нужна пагинация.
     pagination_class = None
     # Нужно допилить поисковой фильтр.
@@ -111,6 +114,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Recip."""
     queryset = Recipe.objects.all()
+    permission_classes = (AllowAny,)
     serializer_class = RecipeSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeSearchFilter
@@ -169,6 +173,7 @@ class CartViewSet(
     viewsets.GenericViewSet
 ):
     """Вьюсет для модели CART."""
+    permission_classes = (AllowAny,)
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
@@ -206,6 +211,7 @@ class CartDownloadViewSet(
     @action(
         detail=False,
         methods=['get'],
+        permission_classes=(AllowAny,)
     )
     def download_shopping_cart(self, request):
         instance = Cart.objects.get(
