@@ -8,7 +8,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from users.models import Follow, User
-from recipes.models import Tag, Ingredient, Recipe, Cart, Favorite
+from recipes.models import (
+    Tag, Ingredient,
+    Recipe, Cart,
+    Favorite
+)
 
 from .filters import IngredientSearchFilter, RecipeSearchFilter
 from .serializers import (
@@ -16,9 +20,12 @@ from .serializers import (
     RecipeSerializer, CartSerializer,
     SubscriptionsSerializer, RecipesShortSerializer
 )
+from .pagination import CustomPagination
 
 
 class CustomUserViewSet(UserViewSet):
+    pagination_class = CustomPagination
+
     @action(
         methods=['get'],
         detail=False
@@ -95,8 +102,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
-    # Тут не нужна пагинация.
-    pagination_class = None
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -104,20 +109,16 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
-    # Тут не нужна пагинация.
-    pagination_class = None
-    # Нужно допилить поисковой фильтр.
     filter_backends = (
         DjangoFilterBackend,
-        # filters.SearchFilter
     )
     filterset_class = IngredientSearchFilter
-    # search_fields = ('@name',)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Recip."""
     queryset = Recipe.objects.all()
+    pagination_class = CustomPagination
     permission_classes = (AllowAny,)
     serializer_class = RecipeSerializer
     filter_backends = (DjangoFilterBackend,)

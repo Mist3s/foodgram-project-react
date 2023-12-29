@@ -43,6 +43,17 @@ class CustomUserSerializer(UserSerializer):
             return False
         return user.follower.filter(following_id=obj.id).exists()
 
+    # def get_recipes(self, obj):
+    #     recipes_limit = self.context.get('recipes_limit')
+    #     recipes_queryset = obj.recip.all()
+    #
+    #     if recipes_limit:
+    #         recipes_queryset = recipes_queryset[:recipes_limit]
+    #
+    #     # Передача recipes_limit в контекст RecipesShortSerializer
+    #     context = {'recipes_limit': recipes_limit} if recipes_limit else {}
+    #     return RecipesShortSerializer(recipes_queryset, many=True, context=context).data
+
 
 class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Таг."""
