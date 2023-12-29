@@ -15,12 +15,10 @@ class IngredientSearchFilter(rest_framework.FilterSet):
 
 class RecipeSearchFilter(rest_framework.FilterSet):
     is_favorited = rest_framework.BooleanFilter(
-        method='filter_boolean_field',
-        field_name='favorite_recipes'
+        method='filter_is_favorited',
     )
     is_in_shopping_cart = rest_framework.BooleanFilter(
-        method='filter_boolean_field',
-        field_name='recipe_in_shoplist'
+        method='filter_is_in_shopping_cart',
     )
     author = rest_framework.NumberFilter(
         field_name='author__id'
@@ -32,22 +30,18 @@ class RecipeSearchFilter(rest_framework.FilterSet):
         queryset=Tag.objects.all()
     )
 
-    def filter_boolean_field(self, queryset, name, value):
-        """Универсальный метод для булевой фильтрации."""
+    def filter_is_favorited(self, queryset, name, value):
+        return self._filter_user_relation(queryset, 'favorite_recipe', value)
+
+    def filter_is_in_shopping_cart(self, queryset, name, value):
+        return self._filter_user_relation(queryset, 'cart_recipe', value)
+
+    def _filter_user_relation(self, queryset, relation_name, value):
         if self.request.user.is_anonymous:
             return queryset
-        if value:
-            return queryset.filter(
-                **{
-                    f'{name}__user': self.request.user
-                }
-            )
-        else:
-            return queryset.exclude(
-                **{
-                    f'{name}__user': self.request.user
-                }
-            )
+        lookup_params = {f'{relation_name}__user': self.request.user}
+        return (queryset.filter(**lookup_params)
+                if value else queryset.exclude(**lookup_params))
 
     class Meta:
         model = Recipe

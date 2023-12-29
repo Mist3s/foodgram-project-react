@@ -127,14 +127,14 @@ class RecipeGetSerializer(serializers.ModelSerializer):
         user = self.context.get("view").request.user
         if user.is_anonymous:
             return False
-        return user.favorite.filter(recipe=obj).exists()
+        return user.favorite_recipe.filter(recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj: Recipe) -> bool:
         """Проверка - находится ли рецепт в списке покупок."""
         user = self.context.get("view").request.user
         if user.is_anonymous:
             return False
-        return user.cart_user.filter(recipe=obj).exists()
+        return user.cart_recipe.filter(recipe=obj).exists()
 
 
 class RecipeSerializer(serializers.ModelSerializer):

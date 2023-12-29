@@ -107,8 +107,12 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     # Тут не нужна пагинация.
     pagination_class = None
     # Нужно допилить поисковой фильтр.
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (
+        DjangoFilterBackend,
+        # filters.SearchFilter
+    )
     filterset_class = IngredientSearchFilter
+    # search_fields = ('@name',)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
