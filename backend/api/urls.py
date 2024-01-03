@@ -4,7 +4,7 @@ from rest_framework import routers
 from .views import (
     TagViewSet, IngredientViewSet,
     RecipeViewSet, CartViewSet,
-    CartDownloadViewSet, CustomUserViewSet
+    CustomUserViewSet
 )
 
 
@@ -19,11 +19,7 @@ v1_router.register(
     IngredientViewSet,
     basename='ingredients'
 )
-v1_router.register(
-    'recipes/download_shopping_cart',
-    CartDownloadViewSet,
-    basename='download_shopping_cart'
-)
+
 v1_router.register(
     r'recipes/(?P<recipe_id>\d+)/shopping_cart',
     CartViewSet,

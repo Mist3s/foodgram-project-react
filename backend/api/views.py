@@ -1,3 +1,8 @@
+from io import BytesIO
+
+from django.db.models import Sum
+from django.http import HttpResponse
+from django.template.loader import render_to_string
 from rest_framework import status, viewsets, filters, mixins
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import get_object_or_404
@@ -6,12 +11,16 @@ from rest_framework.decorators import action
 from djoser.views import UserViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from wsgiref.util import FileWrapper
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 from users.models import Follow, User
 from recipes.models import (
     Tag, Ingredient,
     Recipe, Cart,
-    Favorite
+    Favorite, RecipeIngredient
 )
 
 from .filters import IngredientSearchFilter, RecipeSearchFilter
@@ -171,6 +180,48 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_201_CREATED
             )
 
+    @action(
+        detail=False,
+        methods=['get']
+    )
+    def download_shopping_cart(self, request):
+        recipes = Recipe.objects.filter(
+            cart_recipe__user=request.user
+        )
+        ingredients = Ingredient.objects.filter(
+            recipe_ingredient__recipe__in=recipes
+        )
+        queryset_ingredients = ingredients.annotate(
+            sum_amount_ingredients=(
+                Sum('recipe_ingredient__amount')
+            )
+        )
+        pdf_buffer = BytesIO()
+        pdfmetrics.registerFont(
+            TTFont(
+                'FreeSans',
+                'static/fonts/FreeSans.ttf'
+            )
+        )
+        pdf_canvas = canvas.Canvas(pdf_buffer)
+        text_object = pdf_canvas.beginText(100, 730)
+        text_object.setFont('FreeSans', 12)
+        text_object.textLine('Список покупок:')
+        for ingredient in queryset_ingredients:
+            pdf_text = (f'{ingredient.name} '
+                        f'({ingredient.measurement_unit}) — '
+                        f'{ingredient.sum_amount_ingredients}')
+            text_object.textLine(pdf_text)
+        pdf_canvas.drawText(text_object)
+        pdf_canvas.setTitle('Ваш список покупок')
+        pdf_canvas.save()
+        pdf_bytes = pdf_buffer.getvalue()
+
+        return HttpResponse(
+            pdf_bytes,
+            content_type='application/pdf',
+        )
+
 
 class CartViewSet(
     mixins.CreateModelMixin,
@@ -207,23 +258,3 @@ class CartViewSet(
             )
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class CartDownloadViewSet(
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet
-):
-    @action(
-        detail=False,
-        methods=['get'],
-        permission_classes=(AllowAny,)
-    )
-    def download_shopping_cart(self, request):
-        instance = Cart.objects.get(
-            user=request.user
-        )
-        print(instance)
-        data = {
-            'test': 'test'
-        }
-        return Response(data, status=status.HTTP_200_OK)
