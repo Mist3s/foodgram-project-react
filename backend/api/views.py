@@ -2,16 +2,13 @@ from io import BytesIO
 
 from django.db.models import Sum
 from django.http import HttpResponse
-from django.template.loader import render_to_string
-from rest_framework import status, viewsets, filters, mixins
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import status, viewsets, mixins
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from djoser.views import UserViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from wsgiref.util import FileWrapper
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -22,7 +19,6 @@ from recipes.models import (
     Recipe, Cart,
     Favorite, RecipeIngredient
 )
-
 from .filters import IngredientSearchFilter, RecipeSearchFilter
 from .serializers import (
     TagSerializer, IngredientSerializer,
@@ -34,6 +30,19 @@ from .pagination import CustomPagination
 
 class CustomUserViewSet(UserViewSet):
     pagination_class = CustomPagination
+
+    @action(
+        ['get'],
+        detail=False,
+        permission_classes=(IsAuthenticated,)
+    )
+    def me(self, request):
+        user = get_object_or_404(
+            User,
+            email=request.user.email
+        )
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
 
     @action(
         methods=['get'],
@@ -182,7 +191,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=False,
-        methods=['get']
+        methods=['get'],
+        pagination_class=IsAuthenticated
     )
     def download_shopping_cart(self, request):
         recipes = Recipe.objects.filter(

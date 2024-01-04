@@ -154,13 +154,15 @@ DJOSER = {
         'user': 'api.serializers.CustomUserSerializer',
         'current_user': 'api.serializers.CustomUserSerializer',
     },
+    'LOGIN_FIELD': 'email',
     'HIDE_USERS': False,
+    'SEND_ACTIVATION_EMAIL': False,
     'PERMISSIONS': {
         'user_list': [
             'rest_framework.permissions.AllowAny'
         ],
         'user': [
-            'rest_framework.permissions.AllowAny'
+            'rest_framework.permissions.IsAuthenticatedOrReadOnly'
         ]
     },
 }
