@@ -20,6 +20,7 @@ from recipes.models import (
     Favorite, RecipeIngredient
 )
 from .filters import IngredientSearchFilter, RecipeSearchFilter
+from .permissions import IsAuthorOrReadOnly
 from .serializers import (
     TagSerializer, IngredientSerializer,
     RecipeSerializer, CartSerializer,
@@ -137,10 +138,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Recip."""
     queryset = Recipe.objects.all()
     pagination_class = CustomPagination
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthorOrReadOnly,)
     serializer_class = RecipeSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeSearchFilter
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def perform_create(self, serializer):
         serializer.save(
@@ -157,23 +159,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
             id=kwargs.get('pk')
         )
         favorite = Favorite.objects.filter(
-            recipe=recipe,
-            user=request.user
+            recipe=recipe, user=request.user
         )
-        if request.method == 'DELETE':
-            if not favorite:
+        if request.method == 'POST':
+            if not Recipe.objects.filter(
+                    id=kwargs.get('pk')
+            ).exists():
                 return Response(
-                    data='Вы не добавляли этот рецепт в избранное.',
+                    'Рецепт не существует.',
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            favorite.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        elif favorite:
-            return Response(
-                data='Рецепт уже в избранном.',
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        elif request.method == 'POST':
+            if favorite:
+                return Response(
+                    'Рецепт уже в избранном.',
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             Favorite.objects.create(
                 recipe=recipe,
                 user=request.user
@@ -188,6 +189,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 serializer.data,
                 status=status.HTTP_201_CREATED
             )
+        if favorite:
+            favorite.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            'Данного рецепта нет в избранном.',
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     @action(
         detail=False,
@@ -239,7 +247,7 @@ class CartViewSet(
     viewsets.GenericViewSet
 ):
     """Вьюсет для модели CART."""
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthorOrReadOnly,)
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 

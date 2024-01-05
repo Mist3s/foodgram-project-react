@@ -51,14 +51,12 @@ class Recipe(models.Model):
     """Модель рецепта."""
     ingredients = models.ManyToManyField(
         Ingredient,
-        blank=True,
         through='RecipeIngredient',
         related_name='recipe',
         verbose_name='Ингредиент',
     )
     tags = models.ManyToManyField(
         Tag,
-        blank=True,
         related_name='recipe',
         verbose_name='Тег рецепта',
     )
@@ -69,8 +67,6 @@ class Recipe(models.Model):
     )
     image = models.ImageField(
         upload_to='recipes/images/',
-        null=True,
-        default=None
     )
     cooking_time = models.IntegerField(
         validators=[
@@ -82,7 +78,6 @@ class Recipe(models.Model):
         help_text='Укажите время приготовления (в минутах)'
     )
     text = models.TextField(
-        blank=True,
         verbose_name="Описание",
         help_text='Добавьте описание'
     )
@@ -95,6 +90,7 @@ class Recipe(models.Model):
     )
 
     class Meta:
+        ordering = ('-id',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
@@ -150,6 +146,10 @@ class RecipeIngredient(models.Model):
     class Meta:
         verbose_name = 'Рецепт - Ингредиент'
         verbose_name_plural = verbose_name
+        constraints = [models.UniqueConstraint(
+            fields=['recipe', 'ingredient'],
+            name='unique_recipe_ingredient'
+        )]
 
 
 class Cart(models.Model):
