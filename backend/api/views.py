@@ -154,6 +154,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         detail=True
     )
     def favorite(self, request, **kwargs):
+        if not Recipe.objects.filter(
+                id=kwargs.get('pk')
+        ).exists() and request.method == 'POST':
+            return Response(
+                'Рецепт не существует.',
+                status=status.HTTP_400_BAD_REQUEST
+            )
         recipe = get_object_or_404(
             Recipe,
             id=kwargs.get('pk')
@@ -162,13 +169,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe=recipe, user=request.user
         )
         if request.method == 'POST':
-            if not Recipe.objects.filter(
-                    id=kwargs.get('pk')
-            ).exists():
-                return Response(
-                    'Рецепт не существует.',
-                    status=status.HTTP_400_BAD_REQUEST
-                )
             if favorite:
                 return Response(
                     'Рецепт уже в избранном.',
@@ -263,8 +263,15 @@ class CartViewSet(
             recipe=recipe_id
         )
 
-    @action(methods=['delete'], detail=False)
+    @action(
+        methods=['delete'],
+        detail=False
+    )
     def delete(self, request, **kwargs):
+        get_object_or_404(
+            Recipe,
+            id=kwargs.get('pk')
+        )
         instance = Cart.objects.filter(
             user=request.user,
             recipe=kwargs.get('recipe_id')
