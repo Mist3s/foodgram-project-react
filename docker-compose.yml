@@ -1,0 +1,41 @@
+version: '3'
+
+volumes:
+  pg_data:
+  static:
+  data:
+
+services:
+  db:
+    image: postgres:13
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+  backend:
+    build: ./backend/
+    env_file: .env
+    volumes:
+      - data:/app/media/
+      - static:/static/
+    depends_on:
+      - db
+  frontend:
+    env_file: .env
+    build: ./frontend/
+    command: cp -r /app/build/. /static/
+    volumes:
+      - static:/static/
+  gateway:
+    build: ./infra/
+    env_file: .env
+    ports:
+      - 8000:80
+    volumes:
+      - static:/static/
+      - data:/app/media/
+
+
+#docker compose stop && docker compose up --build
+#docker compose exec backend python manage.py migrate
+#docker compose exec backend python manage.py collectstatic
+#docker compose exec backend cp -r /app/static/. /static/static/

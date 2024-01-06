@@ -7,6 +7,7 @@ class Tag(models.Model):
     """Модель тега."""
     name = models.CharField(
         max_length=200,
+        unique=True,
         verbose_name='Название',
         help_text='Укажите название',
     )
@@ -27,9 +28,10 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    """Модель ингредиента."""
+    """Модель ингредиентов."""
     name = models.CharField(
         max_length=200,
+        unique=True,
         verbose_name='Название',
         help_text='Укажите название',
     )
@@ -47,30 +49,27 @@ class Ingredient(models.Model):
         return self.name
 
 
-class Recip(models.Model):
+class Recipe(models.Model):
     """Модель рецепта."""
     ingredients = models.ManyToManyField(
         Ingredient,
-        blank=True,
-        through='RecipIngredient',
-        related_name='recip',
+        through='RecipeIngredient',
+        related_name='recipe',
         verbose_name='Ингредиент',
     )
     tags = models.ManyToManyField(
         Tag,
-        blank=True,
-        related_name='recip',
+        related_name='recipe',
         verbose_name='Тег рецепта',
     )
     name = models.CharField(
         max_length=200,
+        unique=True,
         verbose_name='Название',
         help_text='Укажите название'
     )
     image = models.ImageField(
         upload_to='recipes/images/',
-        null=True,
-        default=None
     )
     cooking_time = models.IntegerField(
         validators=[
@@ -82,7 +81,6 @@ class Recip(models.Model):
         help_text='Укажите время приготовления (в минутах)'
     )
     text = models.TextField(
-        blank=True,
         verbose_name="Описание",
         help_text='Добавьте описание'
     )
@@ -95,6 +93,7 @@ class Recip(models.Model):
     )
 
     class Meta:
+        ordering = ('-id',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
@@ -106,12 +105,12 @@ class Favorite(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='favorite'
+        related_name='favorite_recipe'
     )
     recipe = models.ForeignKey(
-        Recip,
+        Recipe,
         on_delete=models.CASCADE,
-        related_name='favorite'
+        related_name='favorite_recipe'
     )
 
     class Meta:
@@ -123,26 +122,26 @@ class Favorite(models.Model):
         )]
 
 
-class RecipIngredient(models.Model):
+class RecipeIngredient(models.Model):
     """Вспомогательная модель: Рецепт - Ингредиент."""
-    recip = models.ForeignKey(
-        Recip,
+    recipe = models.ForeignKey(
+        Recipe,
         on_delete=models.CASCADE,
-        related_name='recip_ingredient',
+        related_name='recipe_ingredient',
         verbose_name='Рецепт',
         help_text='Укажите рецепт'
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='recip_ingredient',
+        related_name='recipe_ingredient',
         verbose_name='Ингредиент',
         help_text='Укажите ингредиент'
     )
-    amount = models.FloatField(
+    amount = models.IntegerField(
         validators=[
             MinValueValidator(
-                limit_value=0.001,
+                limit_value=1,
             )
         ]
     )
@@ -150,3 +149,28 @@ class RecipIngredient(models.Model):
     class Meta:
         verbose_name = 'Рецепт - Ингредиент'
         verbose_name_plural = verbose_name
+        constraints = [models.UniqueConstraint(
+            fields=['recipe', 'ingredient'],
+            name='unique_recipe_ingredient'
+        )]
+
+
+class Cart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='cart_recipe'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='cart_recipe',
+    )
+
+    class Meta:
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзина'
+        constraints = [models.UniqueConstraint(
+            fields=['user', 'recipe'],
+            name='unique_cart'
+        )]
