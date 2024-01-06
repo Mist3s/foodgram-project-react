@@ -1,11 +1,9 @@
 from django_filters import rest_framework
-from django_filters import AllValuesMultipleFilter
 
 from recipes.models import Ingredient, Recipe, Tag
 
 
 class IngredientSearchFilter(rest_framework.FilterSet):
-    # Для sqlite istartswith, а для postgresql search.
     name = rest_framework.CharFilter(lookup_expr='istartswith')
 
     class Meta:

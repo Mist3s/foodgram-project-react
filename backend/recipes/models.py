@@ -7,6 +7,7 @@ class Tag(models.Model):
     """Модель тега."""
     name = models.CharField(
         max_length=200,
+        unique=True,
         verbose_name='Название',
         help_text='Укажите название',
     )
@@ -30,6 +31,7 @@ class Ingredient(models.Model):
     """Модель ингредиентов."""
     name = models.CharField(
         max_length=200,
+        unique=True,
         verbose_name='Название',
         help_text='Укажите название',
     )
@@ -62,6 +64,7 @@ class Recipe(models.Model):
     )
     name = models.CharField(
         max_length=200,
+        unique=True,
         verbose_name='Название',
         help_text='Укажите название'
     )

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from import_export.admin import ImportExportActionModelAdmin
 
 from .models import (
     Recipe, Tag, Ingredient, Favorite,
@@ -15,6 +16,12 @@ def trim_field_text(obj):
     return obj.text
 
 
+@admin.display(description='Избранное')
+def favorite_count(obj):
+    """Количество добавлений в избранное."""
+    return obj.favorite_recipe.count()
+
+
 class IngredientInline(admin.TabularInline):
     model = RecipeIngredient
     extra = 1
@@ -22,9 +29,12 @@ class IngredientInline(admin.TabularInline):
 
 @admin.register(Recipe)
 class RecipAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'cooking_time', trim_field_text, 'author')
+    list_display = (
+        'id', 'name', 'cooking_time',
+        trim_field_text, 'author', favorite_count
+    )
     list_editable = ('name', 'cooking_time')
-    list_filter = ('name', 'cooking_time')
+    list_filter = ('name', 'author', 'tags')
     search_fields = ('name', 'cooking_time')
     inlines = [IngredientInline]
 
@@ -39,7 +49,7 @@ class TagAdmin(admin.ModelAdmin):
 
 
 @admin.register(Ingredient)
-class IngredientAdmin(admin.ModelAdmin):
+class IngredientAdmin(ImportExportActionModelAdmin, admin.ModelAdmin):
     list_display = ('id', 'name', 'measurement_unit')
     list_editable = ('name', 'measurement_unit')
     list_filter = ('name', 'measurement_unit')
@@ -49,10 +59,10 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'recipe')
+    list_filter = ('user', 'recipe')
 
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'recipe')
-
-
+    list_filter = ('user', 'recipe')
