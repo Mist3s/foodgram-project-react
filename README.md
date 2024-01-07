@@ -1,10 +1,8 @@
-# ![Kittygram](https://kittygram-yandex.hopto.org/static/media/logo.018b6643f3dd14ed8a10432df1ab2a2b.svg) Kittygram
+# Foodgram
 
-Данный проект служит интернет-площадкой для котоводов, где владельцы своих котиков могут выставлять их на показ включая имя, цвет, дату рождения и даже фото, а так же отмечать достижения кота. Благодаря данному ресурсу хозяева кошачих смогут создать реестр своих питомцев.
+Проект Foodgram продуктовый помощник - платформа для публикации рецептов. Cайт, на котором пользователи будут публиковать рецепты, добавлять чужие рецепты в избранное и подписываться на публикации других авторов. Сервис «Список покупок» позволит пользователям создавать список продуктов, которые нужно купить для приготовления выбранных блюд.
 
-
-
-![example workflow](https://github.com/Mist3s/kittygram_final/actions/workflows/main.yml/badge.svg)
+[![Main Foodgram workflow](https://github.com/Mist3s/foodgram-project-react/actions/workflows/main.yml/badge.svg)](https://github.com/Mist3s/foodgram-project-react/actions/workflows/main.yml)
 
 ## Установка
 
