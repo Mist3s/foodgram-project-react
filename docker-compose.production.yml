@@ -29,7 +29,7 @@ services:
     image: mist3s/foodgram_gateway
     env_file: .env
     ports:
-      - 8000:80
+      - 8001:80
     volumes:
       - static:/static/
       - data:/app/media/
