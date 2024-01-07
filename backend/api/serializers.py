@@ -4,10 +4,10 @@ from djoser.serializers import UserSerializer
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
-from users.models import User, Follow
+from users.models import User
 from recipes.models import (
     Tag, Ingredient, Recipe,
-    Favorite, RecipeIngredient, Cart
+    RecipeIngredient, Cart
 )
 
 

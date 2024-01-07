@@ -17,7 +17,7 @@ from users.models import Follow, User
 from recipes.models import (
     Tag, Ingredient,
     Recipe, Cart,
-    Favorite, RecipeIngredient
+    Favorite
 )
 from .filters import IngredientSearchFilter, RecipeSearchFilter
 from .permissions import IsAuthorOrReadOnly
