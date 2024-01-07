@@ -61,7 +61,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели ингредиентов."""
+    """Сериализатор для модели ингредиентов в рецепте (GET)."""
     id = serializers.IntegerField(
         source='ingredient.id'
     )
@@ -83,6 +83,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientAmountSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели ингредиентов в рецепте (основной)."""
     id = serializers.IntegerField(write_only=True)
     amount = serializers.IntegerField(write_only=True)
 
@@ -92,7 +93,7 @@ class IngredientAmountSerializer(serializers.ModelSerializer):
 
 
 class RecipeGetSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Recip."""
+    """Сериализатор для модели Recip (GET)."""
     tags = TagSerializer(many=True)
     ingredients = RecipeIngredientSerializer(
         read_only=True,
@@ -137,7 +138,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Recip."""
+    """Сериализатор для модели Recip (основной)."""
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
         many=True
@@ -242,6 +243,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class CartSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Cart (основной)."""
     def to_representation(self, instance):
         return CartGetSerializer(
             instance, context=self.context
@@ -284,6 +286,7 @@ class CartSerializer(serializers.ModelSerializer):
 
 
 class CartGetSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Cart (GET)."""
     id = serializers.IntegerField(
         source='recipe.id'
     )
@@ -309,6 +312,7 @@ class CartGetSerializer(serializers.ModelSerializer):
 
 
 class RecipesShortSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Recipe в подписках."""
     class Meta:
         model = Recipe
         fields = (
@@ -320,6 +324,7 @@ class RecipesShortSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionsSerializer(CustomUserSerializer):
+    """Сериализатор для подписок."""
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 

@@ -8,6 +8,7 @@ REGEX_ME = RegexValidator(r'[^m][^e]', 'Имя пользователя не м�
 
 
 class User(AbstractUser):
+    """Модель пользователей."""
     username = models.CharField(
         unique=True,
         max_length=150,
@@ -44,14 +45,17 @@ class User(AbstractUser):
 
 
 class Follow(models.Model):
+    """Модель подписок."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        verbose_name='Подписчик',
         related_name='follower'
     )
     following = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        verbose_name='Подписка',
         related_name='following',
     )
 

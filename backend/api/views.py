@@ -30,6 +30,8 @@ from .pagination import CustomPagination
 
 
 class CustomUserViewSet(UserViewSet):
+    """Вьюсет для модели пользователей.
+    С реализованным функционалом подписок."""
     pagination_class = CustomPagination
 
     @action(
@@ -135,7 +137,9 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """Вьюсет для модели Recip."""
+    """Вьюсет для модели Recip.
+    С реализованным функционалом избранных рецептом
+    и скачивание списка покупок."""
     queryset = Recipe.objects.all()
     pagination_class = CustomPagination
     permission_classes = (IsAuthorOrReadOnly,)

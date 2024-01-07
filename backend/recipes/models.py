@@ -102,6 +102,7 @@ class Recipe(models.Model):
 
 
 class Favorite(models.Model):
+    """Модель избранного."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -156,6 +157,7 @@ class RecipeIngredient(models.Model):
 
 
 class Cart(models.Model):
+    """Модель корзины."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
