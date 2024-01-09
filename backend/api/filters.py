@@ -30,6 +30,15 @@ class RecipeSearchFilter(rest_framework.FilterSet):
         queryset=Tag.objects.all()
     )
 
+    class Meta:
+        model = Recipe
+        fields = [
+            'is_favorited',
+            'is_in_shopping_cart',
+            'author',
+            'tags'
+        ]
+
     def filter_is_favorited(self, queryset, name, value):
         return self._filter_user_relation(queryset, 'favorite_recipe', value)
 
@@ -42,12 +51,3 @@ class RecipeSearchFilter(rest_framework.FilterSet):
         lookup_params = {f'{relation_name}__user': self.request.user}
         return (queryset.filter(**lookup_params)
                 if value else queryset.exclude(**lookup_params))
-
-    class Meta:
-        model = Recipe
-        fields = [
-            'is_favorited',
-            'is_in_shopping_cart',
-            'author',
-            'tags'
-        ]
