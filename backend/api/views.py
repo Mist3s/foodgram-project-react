@@ -40,6 +40,7 @@ class CustomUserViewSet(UserViewSet):
         permission_classes=(IsAuthenticated,)
     )
     def me(self, request):
+        """Вывод информации о текущем пользователи."""
         user = get_object_or_404(
             User,
             email=request.user.email
@@ -52,6 +53,7 @@ class CustomUserViewSet(UserViewSet):
         detail=False
     )
     def subscriptions(self, request):
+        """Вывод списка подписок пользователя."""
         user = request.user
         following = User.objects.filter(
             following__user=user
@@ -72,6 +74,7 @@ class CustomUserViewSet(UserViewSet):
         detail=True
     )
     def subscribe(self, request, **kwargs):
+        """Создание и удаление подписок."""
         following = get_object_or_404(
             User,
             id=kwargs.get('id')
@@ -158,6 +161,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         detail=True
     )
     def favorite(self, request, **kwargs):
+        """Добавление и удаление рецепта из избранного."""
         if not Recipe.objects.filter(
                 id=kwargs.get('pk')
         ).exists() and request.method == 'POST':
@@ -207,6 +211,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         pagination_class=IsAuthenticated
     )
     def download_shopping_cart(self, request):
+        """Скачивание списка покупок в PDF."""
         recipes = Recipe.objects.filter(
             cart_recipe__user=request.user
         )
@@ -272,7 +277,7 @@ class CartViewSet(
         detail=False
     )
     def delete(self, request, **kwargs):
-        """Удаление рецепта из корзины."""
+        """Удаление рецепта из избранного."""
         get_object_or_404(
             Recipe,
             id=kwargs.get('recipe_id')
