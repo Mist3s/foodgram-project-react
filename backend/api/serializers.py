@@ -350,7 +350,7 @@ class SubscriptionsSerializer(CustomUserSerializer):
 
     def get_recipes_count(self, obj):
         """Подсчет количества рецептов у пользователя."""
-        return obj.recip.count()
+        return obj.recipes.count()
 
     def get_recipes(self, obj):
         """Ограничение количества выводимых рецептов, в подписках."""
