@@ -169,7 +169,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         if Favorite.objects.filter(
             recipe=recipe, user=request.user
-        ).first():
+        ).exists():
             return Response(
                 'Рецепт уже в избранном.',
                 status=status.HTTP_400_BAD_REQUEST
