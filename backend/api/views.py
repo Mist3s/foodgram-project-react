@@ -155,18 +155,42 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
     @action(
-        methods=['post', 'delete'],
+        methods=['post'],
         detail=True
     )
     def favorite(self, request, **kwargs):
         """Добавление и удаление рецепта из избранного."""
-        if not Recipe.objects.filter(
+        if not (recipe := Recipe.objects.filter(
                 id=kwargs.get('pk')
-        ).exists() and request.method == 'POST':
+        ).first()):
             return Response(
                 'Рецепт не существует.',
                 status=status.HTTP_400_BAD_REQUEST
             )
+        if Favorite.objects.filter(
+            recipe=recipe, user=request.user
+        ).first():
+            return Response(
+                'Рецепт уже в избранном.',
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        Favorite.objects.create(
+            recipe=recipe,
+            user=request.user
+        )
+        serializer = RecipesShortSerializer(
+            recipe,
+            context={
+                'request': request
+            }
+        )
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+
+    @favorite.mapping.delete
+    def delete_favorite(self, request, **kwargs):
         recipe = get_object_or_404(
             Recipe,
             id=kwargs.get('pk')
@@ -174,27 +198,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         favorite = Favorite.objects.filter(
             recipe=recipe, user=request.user
         )
-        if request.method == 'POST':
-            if favorite:
-                return Response(
-                    'Рецепт уже в избранном.',
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            Favorite.objects.create(
-                recipe=recipe,
-                user=request.user
-            )
-            serializer = RecipesShortSerializer(
-                recipe,
-                context={
-                    'request': request
-                }
-            )
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
         if favorite:
             favorite.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
