@@ -356,14 +356,12 @@ class SubscriptionsSerializer(CustomUserSerializer):
 
     def get_recipes(self, obj):
         """Ограничение количества выводимых рецептов, в подписках."""
-        recipes_limit = self.context['request'].GET.get('recipes_limit')
-        if not recipes_limit:
-            return RecipesShortSerializer(
-                Recipe.objects.filter(author=obj),
-                many=True
-            ).data
+        queryset = Recipe.objects.filter(author=obj)
+        if recipes_limit := self.context['request'].GET.get(
+                'recipes_limit'
+        ):
+            queryset = queryset[:int(recipes_limit)]
         return RecipesShortSerializer(
-            Recipe.objects.filter(author=obj)
-            [:int(recipes_limit)],
+            queryset,
             many=True
         ).data
