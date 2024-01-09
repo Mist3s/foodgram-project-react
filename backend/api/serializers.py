@@ -20,7 +20,6 @@ class Base64ImageField(serializers.ImageField):
             data = ContentFile(
                 base64.b64decode(img_str), name='temp.' + ext
             )
-
         return super().to_internal_value(data)
 
 
@@ -39,7 +38,7 @@ class CustomUserSerializer(UserSerializer):
             'is_subscribed'
         )
 
-    def get_is_subscribed(self, obj: User) -> bool:
+    def get_is_subscribed(self, obj):
         """Проверка подписки."""
         user = self.context.get("request").user
         if user.is_anonymous or (user == obj):
@@ -62,7 +61,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели ингредиентов в рецепте (GET)."""
+    """Сериализатор для ингредиентов в рецепте, выходные данные."""
     id = serializers.IntegerField(
         source='ingredient.id'
     )
@@ -123,14 +122,14 @@ class RecipeGetSerializer(serializers.ModelSerializer):
             'cooking_time'
         )
 
-    def get_is_favorited(self, obj: Recipe) -> bool:
+    def get_is_favorited(self, obj):
         """Находится ли рецепт в избранном."""
         user = self.context.get("view").request.user
         if user.is_anonymous:
             return False
         return user.favorite_recipe.filter(recipe=obj).exists()
 
-    def get_is_in_shopping_cart(self, obj: Recipe) -> bool:
+    def get_is_in_shopping_cart(self, obj):
         """Находится ли рецепт в списке покупок."""
         user = self.context.get("view").request.user
         if user.is_anonymous:
@@ -202,6 +201,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return value
 
     def to_representation(self, instance):
+        """Переопределение сериализатора для выходных данных."""
         return RecipeGetSerializer(
             instance, context=self.context
         ).data
@@ -250,6 +250,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 class CartSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Cart (основной)."""
     def to_representation(self, instance):
+        """Переопределение сериализатора для выходных данных."""
         return CartGetSerializer(
             instance, context=self.context
         ).data
@@ -292,7 +293,7 @@ class CartSerializer(serializers.ModelSerializer):
 
 
 class CartGetSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Cart (GET)."""
+    """Сериализатор для модели Cart, выходные данные."""
     id = serializers.IntegerField(
         source='recipe.id'
     )
@@ -347,12 +348,12 @@ class SubscriptionsSerializer(CustomUserSerializer):
             'recipes_count'
         )
 
-    def get_recipes_count(self, obj: User) -> int:
+    def get_recipes_count(self, obj):
         """Подсчет количества рецептов у пользователя."""
         return obj.recip.count()
 
     def get_recipes(self, obj):
-        """Возможность ограничение количество выводим рецептов."""
+        """Ограничение количества выводимых рецептов, в подписках."""
         recipes_limit = self.context['request'].GET.get('recipes_limit')
         if not recipes_limit:
             return RecipesShortSerializer(
