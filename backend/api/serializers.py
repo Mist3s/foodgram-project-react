@@ -10,6 +10,8 @@ from recipes.models import (
     RecipeIngredient, Cart
 )
 
+MIN_INGREDIENT_AMOUNT = 1
+
 
 class Base64ImageField(serializers.ImageField):
     """Кастомный тип поля изображений."""
@@ -41,7 +43,7 @@ class CustomUserSerializer(UserSerializer):
     def get_is_subscribed(self, obj):
         """Проверка подписки."""
         user = self.context.get("request").user
-        if user.is_anonymous or (user == obj):
+        if user.is_anonymous or user == obj:
             return False
         return user.follower.filter(following_id=obj.id).exists()
 
@@ -170,7 +172,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 'Нужно добавить хотя бы один ингредиент.'
             )
         for ingredient in value:
-            if ingredient.get('amount') <= 0:
+            if ingredient.get('amount') >= MIN_INGREDIENT_AMOUNT:
                 raise serializers.ValidationError(
                     'Количество ингредиента должно быть больше 0.'
                 )
