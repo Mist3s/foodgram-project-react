@@ -345,6 +345,7 @@ class SubscriptionsSerializer(CustomUserSerializer):
         return obj.recip.count()
 
     def get_recipes(self, obj):
+        """Возможность фильтрации количества рецептов."""
         recipes_limit = self.context['request'].GET.get('recipes_limit')
         if not recipes_limit:
             return RecipesShortSerializer(
