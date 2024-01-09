@@ -275,15 +275,12 @@ class CartSerializer(serializers.ModelSerializer):
         """Проверка существования рецепта и повторного добавления."""
         if self.context.get('request').method != 'POST':
             return data
-        if not Recipe.objects.filter(
+        if not (recipe := Recipe.objects.filter(
             id=self.context.get('view').kwargs.get('recipe_id')
-        ).exists():
+        ).first()):
             raise serializers.ValidationError(
                 'Рецепта с данным id не существует.'
             )
-        recipe = Recipe.objects.get(
-            id=self.context.get('view').kwargs.get('recipe_id')
-        )
         if Cart.objects.filter(
                 user=self.context.get('request').user,
                 recipe=recipe
