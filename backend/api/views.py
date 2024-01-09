@@ -272,9 +272,10 @@ class CartViewSet(
         detail=False
     )
     def delete(self, request, **kwargs):
+        """Удаление рецепта из корзины."""
         get_object_or_404(
             Recipe,
-            id=kwargs.get('pk')
+            id=kwargs.get('recipe_id')
         )
         instance = Cart.objects.filter(
             user=request.user,

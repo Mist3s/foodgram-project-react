@@ -12,6 +12,7 @@ from recipes.models import (
 
 
 class Base64ImageField(serializers.ImageField):
+    """Кастомный тип поля изображений."""
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             _format, img_str = data.split(';base64,')
@@ -123,14 +124,14 @@ class RecipeGetSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, obj: Recipe) -> bool:
-        """Проверка - находится ли рецепт в избранном."""
+        """Находится ли рецепт в избранном."""
         user = self.context.get("view").request.user
         if user.is_anonymous:
             return False
         return user.favorite_recipe.filter(recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj: Recipe) -> bool:
-        """Проверка - находится ли рецепт в списке покупок."""
+        """Находится ли рецепт в списке покупок."""
         user = self.context.get("view").request.user
         if user.is_anonymous:
             return False
@@ -164,6 +165,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def validate_ingredients(self, value):
+        """Валидация поля ingredients."""
         if not value:
             raise serializers.ValidationError(
                 'Нужно добавить хотя бы один ингредиент.'
@@ -188,6 +190,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return value
 
     def validate_tags(self, value):
+        """Валидация поля tags."""
         if not value:
             raise serializers.ValidationError(
                 'Нужно добавить хотя бы один тег.'
@@ -204,6 +207,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         ).data
 
     def create(self, validated_data):
+        """Создание рецепта."""
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
@@ -220,6 +224,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
+        """Обновление рецепта"""
         if (not validated_data.get('ingredients')
                 or not validated_data.get('tags')):
             raise serializers.ValidationError(
@@ -254,6 +259,7 @@ class CartSerializer(serializers.ModelSerializer):
         exclude = ('user', 'recipe')
 
     def create(self, validated_data):
+        """Добавление рецепта в корзину."""
         recipe = Recipe.objects.get(
             id=self.context.get('view').kwargs.get('recipe_id')
         )
@@ -263,7 +269,7 @@ class CartSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        """Валидация повторного добавления в корзину."""
+        """Проверка существования рецепта и повторного добавления."""
         if self.context.get('request').method != 'POST':
             return data
         if not Recipe.objects.filter(
@@ -342,10 +348,11 @@ class SubscriptionsSerializer(CustomUserSerializer):
         )
 
     def get_recipes_count(self, obj: User) -> int:
+        """Подсчет количества рецептов у пользователя."""
         return obj.recip.count()
 
     def get_recipes(self, obj):
-        """Возможность фильтрации количества рецептов."""
+        """Возможность ограничение количество выводим рецептов."""
         recipes_limit = self.context['request'].GET.get('recipes_limit')
         if not recipes_limit:
             return RecipesShortSerializer(
