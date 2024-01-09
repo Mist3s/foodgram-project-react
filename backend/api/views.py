@@ -223,14 +223,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 Sum('recipe_ingredient__amount')
             )
         )
-        pdf_buffer = BytesIO()
+        response = HttpResponse(content_type='application/pdf')
         pdfmetrics.registerFont(
             TTFont(
                 'FreeSans',
                 'static/fonts/FreeSans.ttf'
             )
         )
-        pdf_canvas = canvas.Canvas(pdf_buffer)
+        pdf_canvas = canvas.Canvas(response)
         text_object = pdf_canvas.beginText(100, 730)
         text_object.setFont('FreeSans', 12)
         text_object.textLine('Список покупок:')
@@ -242,12 +242,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         pdf_canvas.drawText(text_object)
         pdf_canvas.setTitle('Ваш список покупок')
         pdf_canvas.save()
-        pdf_bytes = pdf_buffer.getvalue()
-
-        return HttpResponse(
-            pdf_bytes,
-            content_type='application/pdf',
-        )
+        return response
 
 
 class CartViewSet(
