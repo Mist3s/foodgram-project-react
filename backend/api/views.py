@@ -62,12 +62,12 @@ def create_object_favorite_or_cart(
 
 
 def delete_object_favorite_or_cart(
-        model, recipe_id, user, text
+        model, recipe_id_, user, text
 ):
     """Удаление рецепта из избранного/корзины."""
     recipe = get_object_or_404(
         Recipe,
-        id=recipe_id
+        id=recipe_id_
     )
     if obj := model.objects.filter(
         recipe=recipe, user=user
@@ -168,7 +168,7 @@ class CustomUserViewSet(UserViewSet):
         if following := Follow.objects.filter(
             following=user,
             user=request.user
-        ):
+        ).first():
             following.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(
