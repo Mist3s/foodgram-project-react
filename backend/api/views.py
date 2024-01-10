@@ -68,55 +68,60 @@ class CustomUserViewSet(UserViewSet):
         return self.get_paginated_response(serializer.data)
 
     @action(
-        methods=['post', 'delete'],
+        methods=['post'],
         detail=True
     )
     def subscribe(self, request, **kwargs):
-        """Создание и удаление подписок."""
-        following = get_object_or_404(
+        """Создание подписки."""
+        user = get_object_or_404(
             User,
             id=kwargs.get('id')
         )
-        if request.method == 'DELETE':
-            following = Follow.objects.filter(
-                following=following,
-                user=request.user
-            )
-            if not following:
-                return Response(
-                    data='Вы не подписаны на этого пользователя.',
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            following.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        elif request.user == following:
+        if request.user == user:
             return Response(
                 'Вы пытаетесь подписаться на себя.',
                 status=status.HTTP_400_BAD_REQUEST
             )
-        elif Follow.objects.filter(
+        if Follow.objects.filter(
                 user=request.user,
-                following=following
-        ):
+                following=user
+        ).first():
             return Response(
                 data='Вы уже подписаны.',
                 status=status.HTTP_400_BAD_REQUEST
             )
-        elif request.method == 'POST':
-            Follow.objects.create(
-                user=request.user,
-                following=following
-            )
-            serializer = SubscriptionsSerializer(
-                following,
-                context={
-                    'request': request
-                }
-            )
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
+        Follow.objects.create(
+            user=request.user,
+            following=user
+        )
+        serializer = SubscriptionsSerializer(
+            user,
+            context={
+                'request': request
+            }
+        )
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
+        )
+
+    @subscribe.mapping.delete
+    def delete_subscribe(self, request, **kwargs):
+        """Удаление подписки."""
+        user = get_object_or_404(
+            User,
+            id=kwargs.get('id')
+        )
+        if following := Follow.objects.filter(
+            following=user,
+            user=request.user
+        ).first():
+            following.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            data='Вы не подписаны на этого пользователя.',
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -159,7 +164,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         detail=True
     )
     def favorite(self, request, **kwargs):
-        """Добавление и удаление рецепта из избранного."""
+        """Добавление рецепта в избранное."""
         if not (recipe := Recipe.objects.filter(
                 id=kwargs.get('pk')
         ).first()):
@@ -191,6 +196,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @favorite.mapping.delete
     def delete_favorite(self, request, **kwargs):
+        """Удаление рецепта из избранного."""
         recipe = get_object_or_404(
             Recipe,
             id=kwargs.get('pk')
@@ -273,7 +279,7 @@ class CartViewSet(
         detail=False
     )
     def delete(self, request, **kwargs):
-        """Удаление рецепта из избранного."""
+        """Удаление рецепта из корзины."""
         get_object_or_404(
             Recipe,
             id=kwargs.get('recipe_id')
