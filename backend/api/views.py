@@ -69,7 +69,7 @@ def delete_object_favorite_or_cart(
         Recipe,
         id=recipe_id.get('pk')
     )
-    if obj := model.objects.filter(
+    if obj := model.objects.get(
         recipe=recipe, user=user
     ).first():
         obj.delete()
