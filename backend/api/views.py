@@ -62,15 +62,15 @@ def create_object_favorite_or_cart(
 
 
 def delete_object_favorite_or_cart(
-        model, recipe_id, user, text
+        model, request, text, **kwargs
 ):
     """Удаление рецепта из избранного/корзины."""
     recipe = get_object_or_404(
         Recipe,
-        id=recipe_id
+        id=kwargs.get('pk')
     )
     if obj := model.objects.filter(
-        recipe=recipe, user=user
+        recipe=recipe, user=request.user
     ).first():
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -230,10 +230,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def delete_favorite(self, request, **kwargs):
         """Удаление рецепта из избранного."""
         return delete_object_favorite_or_cart(
-            model=Favorite,
-            recipe_id=int(kwargs.get('pk')),
-            user=request.user,
-            text='favorite',
+            Favorite,
+            request,
+            'favorite',
+            **kwargs,
         )
 
     @action(
