@@ -65,8 +65,7 @@ def delete_object_favorite_or_cart(
         model, request, text, **kwargs
 ):
     """Удаление рецепта из избранного/корзины."""
-    recipe = get_object_or_404(
-        Recipe,
+    recipe = Recipe.objects.filter(
         id=kwargs.get('pk')
     )
     if obj := model.objects.filter(
