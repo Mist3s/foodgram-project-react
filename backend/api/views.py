@@ -65,10 +65,20 @@ def delete_object_favorite_or_cart(
         model, recipe, user, text
 ):
     """Удаление рецепта из избранного/корзины."""
-    if obj := model.objects.filter(
+    # if obj := model.objects.filter(
+    #     recipe=recipe, user=user
+    # ).first():
+    #     obj.delete()
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
+    # return Response(
+    #     f'Данного рецепта нет в {text}.',
+    #     status=status.HTTP_400_BAD_REQUEST
+    # )
+    favorite = model.objects.filter(
         recipe=recipe, user=user
-    ).first():
-        obj.delete()
+    )
+    if favorite:
+        favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     return Response(
         f'Данного рецепта нет в {text}.',
