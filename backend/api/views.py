@@ -62,13 +62,9 @@ def create_object_favorite_or_cart(
 
 
 def delete_object_favorite_or_cart(
-        model, recipe_id, user, text
+        model, recipe, user, text
 ):
     """Удаление рецепта из избранного/корзины."""
-    recipe = get_object_or_404(
-        Recipe,
-        id=recipe_id
-    )
     if obj := model.objects.filter(
         recipe=recipe, user=user
     ).first():
@@ -229,9 +225,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @favorite.mapping.delete
     def delete_favorite(self, request, **kwargs):
         """Удаление рецепта из избранного."""
+        recipe = get_object_or_404(
+            Recipe,
+            id=kwargs.get('pk')
+        )
         return delete_object_favorite_or_cart(
             model=Favorite,
-            recipe_id=kwargs.get('pk'),
+            recipe=recipe,
             user=request.user,
             text='favorite',
         )
