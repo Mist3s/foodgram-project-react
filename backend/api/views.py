@@ -71,7 +71,7 @@ def delete_object_favorite_or_cart(
     )
     if obj := model.objects.filter(
         recipe=recipe, user=user
-    ):
+    ).first():
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     return Response(
@@ -219,21 +219,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def favorite(self, request, **kwargs):
         """Добавление рецепта в избранное."""
         return create_object_favorite_or_cart(
-            Favorite,
-            kwargs.get('pk'),
-            request,
-            'favorite',
-            RecipesShortSerializer
+            model=Favorite,
+            recipe_id=kwargs.get('pk'),
+            request=request,
+            text='favorite',
+            serializer=RecipesShortSerializer
         )
 
     @favorite.mapping.delete
     def delete_favorite(self, request, **kwargs):
         """Удаление рецепта из избранного."""
         return delete_object_favorite_or_cart(
-            Favorite,
-            kwargs.get('pk'),
-            request.user,
-            'favorite',
+            model=Favorite,
+            recipe_id=kwargs.get('pk'),
+            user=request.user,
+            text='favorite',
         )
 
     @action(
