@@ -168,7 +168,7 @@ class CustomUserViewSet(UserViewSet):
         if following := Follow.objects.filter(
             following=user,
             user=request.user
-        ).first():
+        ):
             following.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(
