@@ -27,65 +27,6 @@ from .serializers import (
 from .pagination import CustomPagination
 
 
-def create_object_favorite_or_cart(
-        model, recipe_id, request, text, serializer
-):
-    """Добавление рецепта в избранное/корзину."""
-    if not (recipe := Recipe.objects.filter(
-            id=recipe_id
-    ).first()):
-        return Response(
-            'Рецепт не существует.',
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    if model.objects.filter(
-            recipe=recipe, user=request.user
-    ).exists():
-        return Response(
-            f'Рецепт уже в {text}.',
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    model.objects.create(
-        recipe=recipe,
-        user=request.user
-    )
-    serializer = serializer(
-        recipe,
-        context={
-            'request': request
-        }
-    )
-    return Response(
-        serializer.data,
-        status=status.HTTP_201_CREATED
-    )
-
-
-def delete_object_favorite_or_cart(
-        model, recipe, user, text
-):
-    """Удаление рецепта из избранного/корзины."""
-    # if obj := model.objects.filter(
-    #     recipe=recipe, user=user
-    # ).first():
-    #     obj.delete()
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
-    # return Response(
-    #     f'Данного рецепта нет в {text}.',
-    #     status=status.HTTP_400_BAD_REQUEST
-    # )
-    favorite = model.objects.filter(
-        recipe=recipe, user=user
-    )
-    if favorite:
-        favorite.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    return Response(
-        f'Данного рецепта нет в {text}.',
-        status=status.HTTP_400_BAD_REQUEST
-    )
-
-
 class CustomUserViewSet(UserViewSet):
     """Вьюсет для модели пользователей.
     С реализованным функционалом подписок."""
@@ -224,12 +165,33 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def favorite(self, request, **kwargs):
         """Добавление рецепта в избранное."""
-        return create_object_favorite_or_cart(
-            model=Favorite,
-            recipe_id=kwargs.get('pk'),
-            request=request,
-            text='favorite',
-            serializer=RecipesShortSerializer
+        if not (recipe := Recipe.objects.filter(
+                id=kwargs.get('pk')
+        ).first()):
+            return Response(
+                'Рецепт не существует.',
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if Favorite.objects.filter(
+            recipe=recipe, user=request.user
+        ).exists():
+            return Response(
+                'Рецепт уже в избранном.',
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        Favorite.objects.create(
+            recipe=recipe,
+            user=request.user
+        )
+        serializer = RecipesShortSerializer(
+            recipe,
+            context={
+                'request': request
+            }
+        )
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED
         )
 
     @favorite.mapping.delete
@@ -239,11 +201,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
             Recipe,
             id=kwargs.get('pk')
         )
-        return delete_object_favorite_or_cart(
-            model=Favorite,
-            recipe=recipe,
-            user=request.user,
-            text='favorite',
+        favorite = Favorite.objects.filter(
+            recipe=recipe, user=request.user
+        )
+        if favorite:
+            favorite.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            'Данного рецепта нет в избранном.',
+            status=status.HTTP_400_BAD_REQUEST
         )
 
     @action(
