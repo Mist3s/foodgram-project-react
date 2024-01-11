@@ -6,8 +6,7 @@ from rest_framework import serializers
 
 from users.models import User
 from recipes.models import (
-    Tag, Ingredient, Recipe,
-    RecipeIngredient, Cart
+    Tag, Ingredient, Recipe, RecipeIngredient
 )
 
 MIN_INGREDIENT_AMOUNT = 1
@@ -249,76 +248,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         return instance
 
 
-class CartSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Cart (основной)."""
-    def to_representation(self, instance):
-        """Переопределение сериализатора для выходных данных."""
-        return CartGetSerializer(
-            instance, context=self.context
-        ).data
-
-    class Meta:
-        model = Cart
-        exclude = ('user', 'recipe')
-
-    def create(self, validated_data):
-        """Добавление рецепта в корзину."""
-        recipe = Recipe.objects.get(
-            id=self.context.get('view').kwargs.get('recipe_id')
-        )
-        return Cart.objects.create(
-            user=self.context.get('request').user,
-            recipe=recipe
-        )
-
-    def validate(self, data):
-        """Проверка существования рецепта и повторного добавления."""
-        if self.context.get('request').method != 'POST':
-            return data
-        if not (recipe := Recipe.objects.filter(
-            id=self.context.get('view').kwargs.get('recipe_id')
-        ).first()):
-            raise serializers.ValidationError(
-                'Рецепта с данным id не существует.'
-            )
-        if Cart.objects.filter(
-                user=self.context.get('request').user,
-                recipe=recipe
-        ).exists():
-            raise serializers.ValidationError(
-                'Рецепт уже добавлен в корзину.'
-            )
-        return data
-
-
-class CartGetSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Cart, выходные данные."""
-    id = serializers.IntegerField(
-        source='recipe.id'
-    )
-    name = serializers.StringRelatedField(
-        source='recipe.name'
-    )
-    image = serializers.ImageField(
-        source='recipe.image'
-    )
-    cooking_time = serializers.IntegerField(
-        source='recipe.cooking_time'
-    )
-
-    class Meta:
-        model = Cart
-        fields = (
-            'id',
-            'name',
-            'image',
-            'cooking_time'
-        )
-        read_only_fields = ('__all__',)
-
-
 class RecipesShortSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Recipe в подписках."""
+    """Сериализатор для модели Recipe в подписках/корзине."""
     class Meta:
         model = Recipe
         fields = (
