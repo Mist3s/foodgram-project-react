@@ -242,11 +242,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return self.create_object(
             model=Cart,
             text=text,
-            serializer=CartGetSerializer
+            serializer=RecipesShortSerializer
         )
 
     @shopping_cart.mapping.delete
-    def delete_shopping_cart(self):
+    def delete_shopping_cart(self, request, **kwargs):
         text = 'корзине'
         return self.delete_object(
             model=Cart,
