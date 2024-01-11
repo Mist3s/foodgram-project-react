@@ -172,7 +172,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 'Нужно добавить хотя бы один ингредиент.'
             )
         for ingredient in value:
-            if ingredient.get('amount') >= MIN_INGREDIENT_AMOUNT:
+            if int(ingredient.get('amount')) >= MIN_INGREDIENT_AMOUNT:
                 raise serializers.ValidationError(
                     'Количество ингредиента должно быть больше 0.'
                 )
