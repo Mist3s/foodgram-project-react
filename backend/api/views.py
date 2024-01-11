@@ -159,34 +159,32 @@ class RecipeViewSet(viewsets.ModelViewSet):
             author=self.request.user
         )
 
-    @action(
-        methods=['post'],
-        detail=True
-    )
-    def favorite(self, request, **kwargs):
-        """Добавление рецепта в избранное."""
+    def create_object(
+            self, model, text, serializer
+    ):
+        """Добавление рецепта в избранное/корзину."""
         if not (recipe := Recipe.objects.filter(
-                id=kwargs.get('pk')
+                id=self.kwargs.get('pk')
         ).first()):
             return Response(
                 'Рецепт не существует.',
                 status=status.HTTP_400_BAD_REQUEST
             )
-        if Favorite.objects.filter(
-            recipe=recipe, user=request.user
+        if model.objects.filter(
+                recipe=recipe, user=self.request.user
         ).exists():
             return Response(
-                'Рецепт уже в избранном.',
+                f'Рецепт уже в {text}.',
                 status=status.HTTP_400_BAD_REQUEST
             )
-        Favorite.objects.create(
+        model.objects.create(
             recipe=recipe,
-            user=request.user
+            user=self.request.user
         )
-        serializer = RecipesShortSerializer(
+        serializer = serializer(
             recipe,
             context={
-                'request': request
+                'request': self.request
             }
         )
         return Response(
@@ -194,22 +192,44 @@ class RecipeViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED
         )
 
+    def delete_object(
+            self, model, text
+    ):
+        """Удаление рецепта из избранного/корзины."""
+        recipe = get_object_or_404(
+            Recipe,
+            id=self.kwargs.get('pk')
+        )
+        if obj := model.objects.filter(
+                recipe=recipe, user=self.request.user
+        ):
+            obj.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            f'Данного рецепта нет в {text}.',
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    @action(
+        methods=['post'],
+        detail=True
+    )
+    def favorite(self, request, **kwargs):
+        """Добавление рецепта в избранное."""
+        text = 'избранном'
+        return self.create_object(
+            model=Favorite,
+            text=text,
+            serializer=RecipesShortSerializer
+        )
+
     @favorite.mapping.delete
     def delete_favorite(self, request, **kwargs):
         """Удаление рецепта из избранного."""
-        recipe = get_object_or_404(
-            Recipe,
-            id=kwargs.get('pk')
-        )
-        favorite = Favorite.objects.filter(
-            recipe=recipe, user=request.user
-        )
-        if favorite:
-            favorite.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(
-            'Данного рецепта нет в избранном.',
-            status=status.HTTP_400_BAD_REQUEST
+        text = 'избранном'
+        return self.delete_object(
+            model=Favorite,
+            text=text
         )
 
     @action(
