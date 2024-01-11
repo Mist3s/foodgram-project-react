@@ -21,8 +21,8 @@ from .filters import IngredientSearchFilter, RecipeSearchFilter
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (
     TagSerializer, IngredientSerializer,
-    RecipeSerializer, CartGetSerializer,
-    SubscriptionsSerializer, RecipesShortSerializer
+    RecipeSerializer, RecipesShortSerializer,
+    SubscriptionsSerializer
 )
 from .pagination import CustomPagination
 
