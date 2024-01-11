@@ -1,6 +1,6 @@
 from django.db.models import Sum
 from django.http import HttpResponse
-from rest_framework import status, viewsets, mixins
+from rest_framework import status, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -21,7 +21,7 @@ from .filters import IngredientSearchFilter, RecipeSearchFilter
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (
     TagSerializer, IngredientSerializer,
-    RecipeSerializer, CartSerializer,
+    RecipeSerializer, CartGetSerializer,
     SubscriptionsSerializer, RecipesShortSerializer
 )
 from .pagination import CustomPagination
@@ -233,6 +233,27 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
     @action(
+        methods=['post'],
+        detail=True
+    )
+    def shopping_cart(self, request, **kwargs):
+        """Добавление рецепта в избранное."""
+        text = 'корзине'
+        return self.create_object(
+            model=Cart,
+            text=text,
+            serializer=CartGetSerializer
+        )
+
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self):
+        text = 'корзине'
+        return self.delete_object(
+            model=Cart,
+            text=text
+        )
+
+    @action(
         detail=False,
         methods=['get'],
         pagination_class=IsAuthenticated
@@ -270,48 +291,3 @@ class RecipeViewSet(viewsets.ModelViewSet):
         pdf_canvas.setTitle('Ваш список покупок')
         pdf_canvas.save()
         return response
-
-
-class CartViewSet(
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet
-):
-    """Вьюсет для модели CART."""
-    permission_classes = (IsAuthorOrReadOnly,)
-    queryset = Cart.objects.all()
-    serializer_class = CartSerializer
-
-    def get_queryset(self):
-        return Cart.objects.filter(
-            user=self.request.user
-        )
-
-    def perform_create(self, serializer):
-        recipe_id = self.kwargs.get('recipe_id')
-        serializer.save(
-            user=self.request.user,
-            recipe=recipe_id
-        )
-
-    @action(
-        methods=['delete'],
-        detail=False
-    )
-    def delete(self, request, **kwargs):
-        """Удаление рецепта из корзины."""
-        get_object_or_404(
-            Recipe,
-            id=kwargs.get('recipe_id')
-        )
-        instance = Cart.objects.filter(
-            user=request.user,
-            recipe=kwargs.get('recipe_id')
-        )
-        if not instance:
-            return Response(
-                data='Вы не добавляли этот рецепт в список покупок.',
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
