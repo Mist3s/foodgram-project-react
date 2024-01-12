@@ -1,4 +1,4 @@
-from django.db.models import Sum
+from django.db.models import Sum, Prefetch
 from django.http import HttpResponse
 from rest_framework import status, viewsets
 from rest_framework.generics import get_object_or_404
@@ -15,7 +15,7 @@ from users.models import Follow, User
 from recipes.models import (
     Tag, Ingredient,
     Recipe, Cart,
-    Favorite
+    Favorite, RecipeIngredient
 )
 from .filters import IngredientSearchFilter, RecipeSearchFilter
 from .permissions import IsAuthorOrReadOnly
@@ -146,7 +146,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Recip.
     С реализованным функционалом избранных рецептом
     и скачивание списка покупок."""
-    queryset = Recipe.objects.all()
+    queryset = Recipe.objects.all().select_related(
+        'author'
+    ).prefetch_related(
+        'tags',
+        Prefetch(
+            'recipe_ingredient',
+            queryset=RecipeIngredient.objects.select_related('ingredient'),
+            to_attr='recipe_ingredient'
+        )
+    )
     pagination_class = CustomPagination
     permission_classes = (IsAuthorOrReadOnly,)
     serializer_class = RecipeSerializer
