@@ -153,7 +153,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         Prefetch(
             'recipe_ingredient',
             queryset=RecipeIngredient.objects.select_related('ingredient'),
-            to_attr='recipe_ingredient'
+            to_attr='ingredients'
         )
     )
     pagination_class = CustomPagination

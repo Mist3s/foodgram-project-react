@@ -99,7 +99,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientSerializer(
         read_only=True,
         many=True,
-        source='recipe_ingredient'
+        source='ingredients'
     )
     author = CustomUserSerializer(
         read_only=True,
