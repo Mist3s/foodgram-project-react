@@ -3,6 +3,28 @@ from django.core.validators import MinValueValidator
 from users.models import User
 
 
+class RecipeQuerySet(models.QuerySet):
+    def with_favorited_and_in_cart_status(self, user):
+        return self.annotate(
+            is_favorited=models.Case(
+                models.When(
+                    favorite_recipe__user=user,
+                    then=models.Value(True)
+                ),
+                default=models.Value(False),
+                output_field=models.BooleanField()
+            ),
+            is_in_shopping_cart=models.Case(
+                models.When(
+                    cart_recipe__user=user,
+                    then=models.Value(True)
+                ),
+                default=models.Value(False),
+                output_field=models.BooleanField()
+            )
+        )
+
+
 class Tag(models.Model):
     """Модель тега."""
     name = models.CharField(
@@ -90,6 +112,9 @@ class Recipe(models.Model):
         verbose_name='Автор',
         help_text='Укажите автора'
     )
+    objects = models.Manager.from_queryset(
+        RecipeQuerySet
+    )()
 
     class Meta:
         ordering = ('-id',)

@@ -152,7 +152,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         'tags',
         Prefetch(
             'recipe_ingredient',
-            queryset=RecipeIngredient.objects.select_related('ingredient'),
+            queryset=RecipeIngredient.objects.select_related(
+                'ingredient'
+            ),
             to_attr='ingredients'
         )
     )
@@ -162,6 +164,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeSearchFilter
     http_method_names = ['get', 'post', 'patch', 'delete']
+
+    def get_queryset(self):
+        queryset = self.queryset
+        if self.request.user.is_authenticated:
+            queryset = queryset.with_favorited_and_in_cart_status(
+                self.request.user
+            )
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(
