@@ -112,6 +112,14 @@ class Recipe(models.Model):
         verbose_name='Автор',
         help_text='Укажите автора'
     )
+    is_favorited = models.BooleanField(
+        default=False,
+        editable=False
+    )
+    is_in_shopping_cart = models.BooleanField(
+        default=False,
+        editable=False
+    )
     objects = models.Manager.from_queryset(
         RecipeQuerySet
     )()
