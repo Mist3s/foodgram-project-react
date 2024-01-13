@@ -64,13 +64,13 @@ class IngredientSerializer(serializers.ModelSerializer):
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для ингредиентов в рецепте, выходные данные."""
     id = serializers.IntegerField(
-        # source='ingredient.id'
+        source='ingredient.id'
     )
     measurement_unit = serializers.StringRelatedField(
-        # source='ingredient.measurement_unit'
+        source='ingredient.measurement_unit'
     )
     name = serializers.StringRelatedField(
-        # source='ingredient.name'
+        source='ingredient.name'
     )
 
     class Meta:
@@ -99,7 +99,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientSerializer(
         read_only=True,
         many=True,
-        # source='recipe_ingredient'
+        source='recipe_ingredient'
     )
     author = CustomUserSerializer(
         read_only=True,
