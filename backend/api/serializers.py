@@ -110,8 +110,6 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     is_in_shopping_cart = serializers.BooleanField(
         read_only=True,
     )
-    # is_favorited = serializers.SerializerMethodField()
-    # is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField()
 
     class Meta:
@@ -128,20 +126,6 @@ class RecipeGetSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time'
         )
-
-    # def get_is_favorited(self, obj):
-    #     """Находится ли рецепт в избранном."""
-    #     user = self.context.get("view").request.user
-    #     if user.is_anonymous:
-    #         return False
-    #     return user.favorite_recipe.filter(recipe=obj).exists()
-    #
-    # def get_is_in_shopping_cart(self, obj):
-    #     """Находится ли рецепт в списке покупок."""
-    #     user = self.context.get("view").request.user
-    #     if user.is_anonymous:
-    #         return False
-    #     return user.cart_recipe.filter(recipe=obj).exists()
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -177,7 +161,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 'Нужно добавить хотя бы один ингредиент.'
             )
         for ingredient in value:
-            if int(ingredient.get('amount')) >= MIN_INGREDIENT_AMOUNT:
+            if not int(ingredient.get('amount')) >= MIN_INGREDIENT_AMOUNT:
                 raise serializers.ValidationError(
                     'Количество ингредиента должно быть больше 0.'
                 )
@@ -213,11 +197,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             instance, context=self.context
         ).data
 
-    def create(self, validated_data):
-        """Создание рецепта."""
-        ingredients = validated_data.pop('ingredients')
-        tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(**validated_data)
+    def create_and_update_objects(self, recipe, ingredients, tags):
         recipe.tags.set(tags)
         ingredients_list = []
         for ingredient in ingredients:
@@ -230,28 +210,33 @@ class RecipeSerializer(serializers.ModelSerializer):
         RecipeIngredient.objects.bulk_create(ingredients_list)
         return recipe
 
-    def update(self, instance, validated_data):
+    def create(self, validated_data):
+        """Создание рецепта."""
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        recipe = Recipe.objects.create(**validated_data)
+        return self.create_and_update_objects(
+            recipe=recipe,
+            ingredients=ingredients,
+            tags=tags
+        )
+
+    def update(self, recipe, validated_data):
         """Обновление рецепта"""
         if (not validated_data.get('ingredients')
                 or not validated_data.get('tags')):
             raise serializers.ValidationError(
                 'Не все обязательные поля заполнены.'
             )
-        instance.ingredients.clear()
+        recipe.ingredients.clear()
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        instance = super().update(instance, validated_data)
-        instance.tags.set(tags)
-        ingredients_list = []
-        for ingredient in ingredients:
-            new_ingredient = RecipeIngredient(
-                recipe=instance,
-                ingredient_id=ingredient['id'],
-                amount=ingredient['amount'],
-            )
-            ingredients_list.append(new_ingredient)
-        RecipeIngredient.objects.bulk_create(ingredients_list)
-        return instance
+        recipe = super().update(recipe, validated_data)
+        return self.create_and_update_objects(
+            recipe=recipe,
+            ingredients=ingredients,
+            tags=tags
+        )
 
 
 class RecipesShortSerializer(serializers.ModelSerializer):
