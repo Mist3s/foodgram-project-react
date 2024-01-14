@@ -4,23 +4,18 @@ from users.models import User
 
 
 class RecipeQuerySet(models.QuerySet):
+    """Кастомный QuerySet для модели рецептов."""
     def with_favorited_and_in_cart_status(self, user):
         return self.annotate(
-            is_favorited=models.Case(
-                models.When(
-                    favorite_recipe__user=user,
-                    then=models.Value(True)
-                ),
-                default=models.Value(False),
-                output_field=models.BooleanField()
+            # Аннотация: находится ли рецепт в избранном.
+            is_favorited=models.Count(
+                'favorite_recipe',
+                filter=models.Q(favorite_recipe__user=user)
             ),
-            is_in_shopping_cart=models.Case(
-                models.When(
-                    cart_recipe__user=user,
-                    then=models.Value(True)
-                ),
-                default=models.Value(False),
-                output_field=models.BooleanField()
+            # Аннотация: находится ли рецепт в корзине.
+            is_in_shopping_cart=models.Count(
+                'cart_recipe',
+                filter=models.Q(cart_recipe__user=user)
             )
         )
 
