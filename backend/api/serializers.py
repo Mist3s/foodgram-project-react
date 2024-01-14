@@ -104,6 +104,12 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(
         read_only=True,
     )
+    is_favorited = serializers.BooleanField(
+        read_only=True,
+    )
+    is_in_shopping_cart = serializers.BooleanField(
+        read_only=True,
+    )
     # is_favorited = serializers.SerializerMethodField()
     # is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField()
