@@ -7,15 +7,17 @@ class RecipeQuerySet(models.QuerySet):
     """Кастомный QuerySet для модели рецептов."""
     def with_favorited_and_in_cart_status(self, user):
         return self.annotate(
-            # Аннотация: находится ли рецепт в избранном.
-            is_favorited=models.Count(
-                'favorite_recipe',
-                filter=models.Q(favorite_recipe__user=user)
+            is_favorited=models.Exists(
+                Favorite.objects.filter(
+                    recipe=models.OuterRef('pk'),
+                    user=user
+                )
             ),
-            # Аннотация: находится ли рецепт в корзине.
-            is_in_shopping_cart=models.Count(
-                'cart_recipe',
-                filter=models.Q(cart_recipe__user=user)
+            is_in_shopping_cart=models.Exists(
+                Cart.objects.filter(
+                    recipe=models.OuterRef('pk'),
+                    user=user
+                )
             )
         )
 
@@ -130,7 +132,7 @@ class Favorite(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='favorite_recipe'
+        related_name='favorite_recipes'
     )
 
     class Meta:
@@ -185,7 +187,7 @@ class Cart(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='cart_recipe',
+        related_name='cart_recipes',
     )
 
     class Meta:

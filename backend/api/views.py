@@ -280,7 +280,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         """Скачивание списка покупок в PDF."""
         recipes = Recipe.objects.filter(
-            cart_recipe__user=request.user
+            cart_recipes__user=request.user
         )
         ingredients = Ingredient.objects.filter(
             recipe_ingredient__recipe__in=recipes
